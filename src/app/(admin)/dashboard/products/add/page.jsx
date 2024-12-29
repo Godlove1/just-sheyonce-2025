@@ -15,6 +15,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { CldUploadWidget } from "next-cloudinary";
 
 const SIZES = ["SM", "S", "M", "L", "XL", "XXL"];
 
@@ -80,6 +81,8 @@ export default function AddProductPage() {
     }
   };
 
+  const [resource, setResource] = useState();
+
   return (
     <div className="max-w-2xl mx-auto">
       <h2 className="text-xl font-semibold mb-4">Add New Product</h2>
@@ -142,10 +145,13 @@ export default function AddProductPage() {
 
             {newProduct.hasSizes && (
               <div className="space-y-2 bg-gray-100 italic text-sm rounded-md">
-                <Label className='pt-4 pb-3 px-4'>select sizes</Label>
+                <Label className="pt-4 pb-3 px-4">select sizes</Label>
                 <div className="flex flex-wrap gap-2">
                   {SIZES.map((size) => (
-                    <div key={size} className="flex items-center space-x-1 pb-3 px-1">
+                    <div
+                      key={size}
+                      className="flex items-center space-x-1 pb-3 px-1"
+                    >
                       <Checkbox
                         id={`size-${size}`}
                         checked={newProduct.sizes.includes(size)}
@@ -173,27 +179,42 @@ export default function AddProductPage() {
             </div>
 
             <div>
-              <Label htmlFor="images">Product Images</Label>
-              <Input
-                id="images"
-                type="file"
-                multiple
-                onChange={handleImageUpload}
-                accept="image/*"
-              />
+              <CldUploadWidget
+                signatureEndpoint="/api/sign-cloudinary-params"
+                options={{
+                  sources: ["local"],
+                  multiple: true,
+                  maxFiles: 3,
+                  resourceType: "image",
+                  folder: "sheyonce"
+                }}
+                onSuccess={(result, { widget }) => {
+                  setResource(result?.info);
+                  // { public_id, secure_url, etc }
+                  console.log(result?.info, "files");
+                 
+                }}
+                onQueuesEnd={(result, { widget }) => {
+                  widget.close();
+                }}
+              >
+                {({ open }) => {
+                  function handleOnClick() {
+                    setResource(undefined);
+                    open();
+                  }
+                  return (
+                    <button
+                      onClick={handleOnClick}
+                      className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none text-sm focus:ring focus:border-blue-300"
+                    >
+                      Upload product Images
+                    </button>
+                  );
+                }}
+              </CldUploadWidget>
             </div>
-            {newProduct.images.length > 0 && (
-              <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
-                {newProduct.images.map((image, index) => (
-                  <img
-                    key={index}
-                    src={image}
-                    alt={`Product ${index + 1}`}
-                    className="w-20 h-20 object-cover rounded border"
-                  />
-                ))}
-              </div>
-            )}
+
             {error && <p className="text-red-500 my-2 text-sm">{error}</p>}
             <div className="flex justify-end space-x-2 mt-6">
               <Button
