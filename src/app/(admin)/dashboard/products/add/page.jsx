@@ -84,7 +84,7 @@ export default function AddProductPage() {
   const [resource, setResource] = useState();
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto md:mt-8">
       <h2 className="text-xl font-semibold mb-4">Add New Product</h2>
       <Card>
         <CardContent>
@@ -97,7 +97,7 @@ export default function AddProductPage() {
                 value={newProduct.name}
                 onChange={handleInputChange}
                 placeholder="Enter product name"
-                className="text-sm"
+                className="text-sm h-12"
                 required
               />
             </div>
@@ -107,7 +107,7 @@ export default function AddProductPage() {
               <Input
                 id="price"
                 name="price"
-                className="text-sm"
+                className="text-sm h-12"
                 type="number"
                 value={newProduct.price}
                 onChange={handleInputChange}
@@ -174,7 +174,7 @@ export default function AddProductPage() {
                 value={newProduct.description}
                 onChange={handleInputChange}
                 placeholder="Enter product description"
-                className="text-sm"
+                className="text-sm h-12"
               />
             </div>
 

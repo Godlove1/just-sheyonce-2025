@@ -30,6 +30,7 @@ const menuItems = [
   { icon: ShoppingBag, label: "Products", href: "/dashboard/products" },
   // { icon: ShoppingCart, label: "Orders", href: "/dashboard/orders" },
   { icon: Settings, label: "Settings", href: "/dashboard/settings" },
+  { icon: UserCircle, label: "Profile", href: "/dashboard/profile" },
 ];
 
 export default function DashboardLayout({ children }) {

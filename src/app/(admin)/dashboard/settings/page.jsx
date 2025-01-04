@@ -68,7 +68,7 @@ export default function SettingsPage() {
 
   return (
     <>
-      <h2 className="text-xl font-semibold mb-4">Settings</h2>
+      <h2 className="text-xl font-semibold mb-4 md:mt-8">Settings</h2>
       <div className="space-y-6">
         <Card>
           <CardHeader>

@@ -98,8 +98,12 @@ export default function ClientEditProduct({ initialProduct }) {
     }
   };
 
+
+
+  
+
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto md:mt-8">
       <h2 className="text-xl font-semibold mb-4">Edit Product</h2>
       <Card>
         <CardContent>
@@ -112,7 +116,7 @@ export default function ClientEditProduct({ initialProduct }) {
                 value={product.name}
                 onChange={handleInputChange}
                 placeholder="Enter product name"
-                className="text-sm"
+                className="text-sm h-12"
                 required
               />
             </div>
@@ -122,7 +126,7 @@ export default function ClientEditProduct({ initialProduct }) {
               <Input
                 id="price"
                 name="price"
-                className="text-sm"
+                className="text-sm h-12"
                 type="number"
                 value={product.price}
                 onChange={handleInputChange}
@@ -186,7 +190,7 @@ export default function ClientEditProduct({ initialProduct }) {
                 value={product.description}
                 onChange={handleInputChange}
                 placeholder="Enter product description"
-                className="text-sm"
+                className="text-sm h-12"
               />
             </div>
 

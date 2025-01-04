@@ -11,7 +11,7 @@ export default function Footer() {
     <>
       <footer className="w-full bg-black mt-12 text-white px-4 py-8">
         <div className="container mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="flex justify-center items-center flex-col">
             {/* Logo Section */}
             <div className="flex flex-col items-center md:items-start">
               <Image
@@ -23,9 +23,9 @@ export default function Footer() {
             </div>
 
             {/* Address Section */}
-            <div className="flex flex-col items-center md:items-start">
+            <div className="flex flex-col items-center justify-center  ">
               <h3 className="text-sm font-semibold mb-4">Contact Us</h3>
-              <address className="text-gray-300 not-italic text-center text-xs md:text-left">
+              <address className="text-gray-300 not-italic text-center text-xs ">
                 123 Business Street
                 <br />
                 City, State 12345
@@ -41,7 +41,7 @@ export default function Footer() {
             </div>
 
             {/* Social Media Links */}
-            <div className="flex flex-col items-center md:items-start">
+            <div className="flex flex-col items-center justify-center mt-8">
               <h3 className="text-sm font-semibold mb-4">Connect With Us</h3>
               <div className="flex space-x-4 text-xs">
                 <a
@@ -80,7 +80,7 @@ export default function Footer() {
 
           {/* Copyright and Developer Info */}
           <div className="mt-8 pt-8 text-xs border-t border-gray-200 text-center md:text-left">
-            <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="flex flex-col  justify-between items-center">
               <p className="text-gray-400">
                 &copy; 2022 - {currentYear} Sheyonce. All rights reserved.
               </p>

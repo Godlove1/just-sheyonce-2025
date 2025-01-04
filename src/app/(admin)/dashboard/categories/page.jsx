@@ -79,7 +79,7 @@ export default function CategoriesPage() {
 
   return (
     <>
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-4 md:my-8">
         <h2 className="text-xl font-semibold">Categories</h2>
         <Button
           size="sm"

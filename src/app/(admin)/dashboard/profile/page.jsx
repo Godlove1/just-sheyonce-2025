@@ -52,132 +52,140 @@ export default function ProfilePage() {
 
   return (
     <>
-      <h2 className="text-xl font-semibold mb-3 -mt-2">Profile</h2>
+      <h2 className="text-xl font-semibold mb-3 -mt-2 md:mt-8">Profile</h2>
       <Card>
         <CardHeader>
           <CardTitle>Edit Profile</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4 ">
-            <div>
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                name="username"
-                value={profile.username}
-                className="text-sm"
-                placeholder="username"
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                className="text-sm"
-                placeholder="email"
-                value={profile.email}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                className="text-sm"
-                placeholder="password"
-                value={profile.password}
-                onChange={handleInputChange}
-              />
-            </div>
+            <div className="wrapper_lg w-full flex justify-center items-center">
+              <div className="inner_lg w-full grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    id="username"
+                    name="username"
+                    value={profile.username}
+                    className="text-sm h-12"
+                    placeholder="username"
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    className="text-sm h-12"
+                    placeholder="email"
+                    value={profile.email}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    className="text-sm h-12"
+                    placeholder="password"
+                    value={profile.password}
+                    onChange={handleInputChange}
+                  />
+                </div>
 
-            <div>
-              <Label htmlFor="instagram">Instagram</Label>
-              <Input
-                id="instagram"
-                name="instagram"
-                className="text-sm"
-                placeholder="ig link"
-                value={profile.instagram}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div>
-              <Label htmlFor="snapchat">Snapchat</Label>
-              <Input
-                id="snapchat"
-                name="snapchat"
-                className="text-sm"
-                placeholder="snap link"
-                value={profile.snapchat}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div>
-              <Label htmlFor="facebook">Facebook</Label>
-              <Input
-                id="facebook"
-                name="facebook"
-                className="text-sm"
-                placeholder="fb link"
-                value={profile.facebook}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div>
-              <Label htmlFor="twitter">Twitter</Label>
-              <Input
-                id="twitter"
-                name="twitter"
-                className="text-sm"
-                placeholder="twitter link"
-                value={profile.twitter}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div>
-              <Label htmlFor="whatsapp">WhatsApp</Label>
-              <Input
-                id="whatsapp"
-                name="whatsapp"
-                  className="text-sm"
-                placeholder="whatsapp Number"
-                value={profile.whatsapp}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="phone">Call Phone</Label>
-              <Input
-                id="phone"
-                name="phone"
-                  className="text-sm"
-                placeholder="phon number"
-                value={profile.phone}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="address">Address</Label>
-              <Input
-                id="address"
-                name="address"
-                  className="text-sm"
-                placeholder="address"
-                value={profile.address}
-                onChange={handleInputChange}
-              />
+                <div>
+                  <Label htmlFor="instagram">Instagram</Label>
+                  <Input
+                    id="instagram"
+                    name="instagram"
+                    className="text-sm h-12"
+                    placeholder="ig link"
+                    value={profile.instagram}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="snapchat">Snapchat</Label>
+                  <Input
+                    id="snapchat"
+                    name="snapchat"
+                    className="text-sm h-12"
+                    placeholder="snap link"
+                    value={profile.snapchat}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="facebook">Facebook</Label>
+                  <Input
+                    id="facebook"
+                    name="facebook"
+                    className="text-sm h-12"
+                    placeholder="fb link"
+                    value={profile.facebook}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="twitter">Twitter</Label>
+                  <Input
+                    id="twitter"
+                    name="twitter"
+                    className="text-sm h-12"
+                    placeholder="twitter link"
+                    value={profile.twitter}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="whatsapp">WhatsApp</Label>
+                  <Input
+                    id="whatsapp"
+                    name="whatsapp"
+                    className="text-sm h-12"
+                    placeholder="whatsapp Number"
+                    value={profile.whatsapp}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="phone">Call Phone</Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    className="text-sm h-12"
+                    placeholder="phon number"
+                    value={profile.phone}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="address">Address</Label>
+                  <Input
+                    id="address"
+                    name="address"
+                    className="text-sm h-12"
+                    placeholder="address"
+                    value={profile.address}
+                    onChange={handleInputChange}
+                  />
+                </div>
+              </div>
             </div>
             {error && <p className="text-red-500 text-sm">{error}</p>}
-            <Button type="submit" className="mt-6">Update Profile</Button>
+            <div className="w-full flex justify-center items-center mt-8">
+              <Button type="submit" className="w-1/2 h-12 text-xl">
+                Update Profile
+              </Button>
+            </div>
           </form>
         </CardContent>
       </Card>
