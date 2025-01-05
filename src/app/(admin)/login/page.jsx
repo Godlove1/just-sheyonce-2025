@@ -11,6 +11,8 @@ import { ArrowBigLeft } from "lucide-react";
 import Link from "next/link";
 import { useStore } from "@/lib/store";
 import toast from "react-hot-toast";
+import { db } from "@/lib/firebase"; 
+import { collection, getDocs, query, where } from "firebase/firestore"; 
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -22,35 +24,37 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
-    const response = await fetch("/api/admin-login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-    });
+      // Query Firestore to find the user with the provided email
+      const q = query(
+        collection(db, "adminUser"),
+        where("email", "==", email)
+      );
+      const querySnapshot = await getDocs(q);
 
-    const result = await response.json();
+      if (querySnapshot.empty) {
+        toast.error("User  not found.");
+        return;
+      }
 
-    if (!response.ok) {
-      // Display server-provided error message
-      toast.error(result.message || "An error occurred. Please try again.");
-      return;
-    }
+      // Assuming you have only one user with the provided email
+      const userDoc = querySnapshot.docs[0];
+      const userData = userDoc.data();
 
-    // Success: store user and navigate to dashboard
-      setAdminUser(result.data);
-      
-      console.log(result.data, "userInfo")
-      // setAdminUser(user); // Store the user in Zustand
-      // router.push("/dashboard");
-      setIsLoading(false)
-
+      // Check if the password matches (assuming passwords are stored in plain text)
+      if (userData.password === password) {
+        // Success: store user and navigate to dashboard
+        setAdminUser(userData);
+        console.log(userData, "userInfo");
+        toast.success("Login successful.");
+        router.push("/dashboard");
+      } else {
+        toast.error("Invalid password.");
+      }
     } catch (err) {
-      // toast.error("An error occurred. Please try again.");
-      console.log(err,"error")
+      console.error(err, "error");
+      toast.error("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -99,7 +103,7 @@ export default function LoginPage() {
                 />
               </div>
             </div>
-          
+
             <div className="w-full flex justify-center mt-6 items-center">
               <Button
                 className="w-1/2 rounded-full border shadow-md hover:bg-white hover:text-black hover:border-black"
@@ -116,8 +120,12 @@ export default function LoginPage() {
       {/* back to website */}
       <div className="w-full flex justify-center items-center mt-6">
         <div className="w-1/2 mt-6 flex justify-start ">
-          <Link href={'/'} title="bact to home" className="text-sm underline flex items-center justify-start">
-            <ArrowBigLeft className="w-5 h-5" /> bact to website
+          <Link
+            href={"/"}
+            title="back to home"
+            className="text-sm underline flex items-center justify-start"
+          >
+            <ArrowBigLeft className="w-5 h-5" /> back to website
           </Link>
         </div>
       </div>

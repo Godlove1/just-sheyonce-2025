@@ -24,7 +24,8 @@ import {
 import Link from "next/link";
 import { TrashIcon } from "lucide-react";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, query } from "firebase/firestore";
+import { collection, deleteDoc, doc, getDocs, query } from "firebase/firestore";
+import toast from "react-hot-toast";
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -126,8 +127,23 @@ export default function ProductsPage() {
     onGlobalFilterChange: setGlobalFilter,
   });
 
-  const handleDelete = (id) => {
-    setProducts(products.filter((p) => p.id !== id));
+  const handleDelete = async (id) => {
+
+    try {
+       const couponRef = doc(db, "products", id);
+      await toast.promise(deleteDoc(couponRef), {
+        // Use deleteDoc instead of setDoc
+        loading: "Deleting products...",
+        success: "deleted successfully!",
+        error: "Failed to delete.",
+      });
+
+       setProducts(products.filter((p) => p.id !== id));
+      
+    } catch (err) {
+      console.log(err, "Error deleting product")
+    }
+   
   };
 
   if (loading) return <div>Loading products...</div>;

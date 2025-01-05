@@ -20,10 +20,11 @@ import {
   ShoppingBag,
   Tag,
   LogOut,
-Settings,
-  UserCircle
+  Settings,
+  UserCircle,
 } from "lucide-react";
 import { Toaster } from "react-hot-toast";
+import { useStore } from "@/lib/store";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
@@ -38,21 +39,17 @@ export default function DashboardLayout({ children }) {
   const router = useRouter();
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [admin, setAdmin] = useState({
-    name: "John Doe",
-    image: "/placeholder-user.jpg",
-  });
+  const { adminUser, setAdminUser } = useStore();
 
   useEffect(() => {
-    // const token = localStorage.getItem("token");
-    // if (!token) {
-    //   router.push("/login");
-    // }
-  }, [router]);
+    if (!adminUser || adminUser === null) {
+      router.push("/login");
+    }
+  }, [router, adminUser]);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    router.push("/login");
+    setAdminUser(null);
+    router.push("/login"); 
   };
 
   return (
@@ -72,11 +69,18 @@ export default function DashboardLayout({ children }) {
           <SidebarContent>
             <SidebarMenu className="p-4">
               {menuItems.map((item) => (
-                <SidebarMenuItem key={item.href}>
+                <SidebarMenuItem
+                  key={item.href}
+                  onClick={() => setIsSidebarOpen(false)}
+                >
                   <SidebarMenuButton
                     asChild
                     active={pathname === item.href ? "true" : undefined}
-                    className={`${pathname === item.href ? "bg-black text-white hover:bg-white hover:text-black border-2" : ''}`}
+                    className={`${
+                      pathname === item.href
+                        ? "bg-black text-white hover:bg-white hover:text-black border-2"
+                        : ""
+                    }`}
                   >
                     <Link
                       href={item.href}
@@ -113,7 +117,7 @@ export default function DashboardLayout({ children }) {
                 <h1 className="text-2xl font-extrabold">Sheyonce</h1>
               </div>
               <div className="flex items-center ">
-                <span className="">{admin.name}</span>
+                <span className="">{adminUser?.username}</span>
                 <Link
                   href="/dashboard/profile"
                   className="w-6 h-6 flex justify-center items-center  border-2 border-black rounded-full ml-2 bg-black text-white hover:bg-white hover:text-black"
