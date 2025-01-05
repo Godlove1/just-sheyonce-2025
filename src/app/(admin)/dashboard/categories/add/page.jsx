@@ -6,31 +6,45 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import toast from "react-hot-toast";
+import {  ArrowLeft } from "lucide-react";
+import axios from "axios";
 
 export default function AddCategoryPage() {
   const router = useRouter();
   const [newCategory, setNewCategory] = useState("");
-  const [error, setError] = useState("");
+  const [isAction, setIsAction] = useState(false)
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-
+    
     if (!newCategory.trim()) {
-      setError("Category name is required");
+      toast.error("Category name is required");
       return;
     }
 
-    try {
-      // Here you would typically send the new category data to your backend
-      console.log("New category:", newCategory);
-      // For now, we'll just show a success message and redirect
-      alert("Category added successfully!");
-      router.push("/dashboard/categories");
-    } catch (err) {
-      setError("Failed to add category. Please try again.");
-    }
+    setIsAction(true)
+
+   try {
+     const res = await toast.promise(
+       axios.post("/api/categories", { name: newCategory }),
+       {
+         loading: "Creating category...",
+         success: "Category created successfully!",
+         error: "Failed to create category",
+       }
+     );
+     console.log(res.data, "response");
+     setNewCategory("")
+setIsAction(false);
+   } catch (err) {
+     console.log(err, "ERROR");
+     toast.error("Failed to add category. Please try again.");
+     setIsAction(false);
+   }
   };
+
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -38,25 +52,26 @@ export default function AddCategoryPage() {
       <Card>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
+            <div className="md:mt-6">
               <Label htmlFor="categoryName">Category Name</Label>
               <Input
                 id="categoryName"
                 value={newCategory}
                 onChange={(e) => setNewCategory(e.target.value)}
                 placeholder="Enter category name"
+                required
               />
             </div>
-            {error && <p className="text-red-500 text-sm">{error}</p>}
+           
             <div className="flex justify-end space-x-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => router.push("/dashboard/categories")}
               >
-                Cancel
+               <ArrowLeft /> go back
               </Button>
-              <Button type="submit">Add Category</Button>
+              <Button type="submit" disabled={isAction}>Add Category</Button>
             </div>
           </form>
         </CardContent>

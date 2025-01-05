@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   useReactTable,
@@ -23,15 +23,33 @@ import {
 } from "@/components/ui/table";
 import Link from "next/link";
 import { TrashIcon } from "lucide-react";
+import axios from "axios";
 
 export default function ProductsPage() {
   const router = useRouter();
-  const [products, setProducts] = useState([
-    { id: 1, name: "Classic T-Shirt", category: "T-Shirts", price: 29.99 },
-    { id: 2, name: "Slim Fit Jeans", category: "Jeans", price: 59.99 },
-    { id: 3, name: "Summer Dress", category: "Dresses", price: 49.99 },
-  ]);
+
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [globalFilter, setGlobalFilter] = useState("");
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get("/api/products");
+        setProducts(response.data);
+        console.log(response.data, "all products");
+      } catch (err) {
+        setError("Failed to fetch products");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   const columns = [
     {
@@ -84,10 +102,12 @@ export default function ProductsPage() {
     onGlobalFilterChange: setGlobalFilter,
   });
 
- 
   const handleDelete = (id) => {
     setProducts(products.filter((p) => p.id !== id));
   };
+
+  if (loading) return <div>Loading products...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
     <>

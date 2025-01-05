@@ -9,89 +9,81 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+
+
+
 model Category {
-  id        String    @id @default(cuid())
-  name      String
-  products  Product[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id          Int       @id @default(autoincrement())
+  categoryCode String   @default(cuid())
+  name        String
+  description String?
+  products    Product[]
 }
 
 model Product {
-  id          String         @id @default(cuid())
-  name        String
-  price       Int
-  description String?
-  category    Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  categoryId  String?
-  hasSizes    Boolean        @default(false) // Add this field
-  images      ProductImage[]
-  sizes       ProductSize[] // Add this relation
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  OrderItem   OrderItem[]
+  id Int @id @default(autoincrement())
+  productCode     String   @default(cuid())
+  name           String
+  description    String?
+  price          Decimal     @db.Decimal(10, 2)
+  categoryId     Int?
+  category       Category?   @relation(fields: [categoryId], references: [id])
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  orderItems     OrderItem[]
+  images         String[]    // Array of image URLs
+  availableSizes String[]    // Array of available sizes
+  hasSizes       Boolean     @default(true)
 }
 
-// model for sizes
-model ProductSize {
-  id        String   @id @default(cuid())
-  product   Product  @relation(fields: [productId], references: [id])
-  productId String
-  size      String // This will store values like "S", "M", "L", etc.
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model User {
+  id           String      @id @default(cuid())
+  username     String   @unique
+  email        String   @unique
+  role         String   @default("ADMIN")
+  passwordHash String
+  createdAt    DateTime @default(now())
+  orders       Order[]
 }
 
-model ProductImage {
-  id        String   @id @default(cuid())
-  product   Product  @relation(fields: [productId], references: [id])
-  productId String
-  imageUrl  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Order {
+  id          Int         @id @default(autoincrement())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+  totalAmount Decimal     @db.Decimal(10, 2)
+  status      String
+  createdAt   DateTime    @default(now())
+  orderItems  OrderItem[]
 }
 
-model AdminUser {
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Decimal @db.Decimal(10, 2)
+  size      String? // Added size field for order items
+}
+
+
+model WebsiteInfo {
   id           String   @id @default(cuid())
   email        String   @unique
   address      String
-  password     String
   phone        String
-  name         String
   whatsApp     String
   snapchat     String
   instagram    String
   facebook     String
   twitter      String
-  profileImage String
-  role         String
-  status       String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-}
-
-model Order {
-  id          String      @id @default(cuid())
-  totalAmount Float
-  status      String
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  orderItems  OrderItem[]
-}
-
-model OrderItem {
-  id        String   @id @default(cuid())
-  product   Product  @relation(fields: [productId], references: [id])
-  productId String
-  quantity  Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  orderId   String
-  order     Order    @relation(fields: [orderId], references: [id])
 }
 
 

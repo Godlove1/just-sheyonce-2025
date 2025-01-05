@@ -9,27 +9,48 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import Image from "next/image";
 import { ArrowBigLeft } from "lucide-react";
 import Link from "next/link";
+import { useStore } from "@/lib/store";
+import toast from "react-hot-toast";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const setAdminUser = useStore((state) => state.setAdminUser);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setError("");
-
+    
     try {
-      // Simulate login
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      // Store a dummy token
-      localStorage.setItem("token", "dummy_token");
-      router.push("/dashboard");
+    const response = await fetch("/api/admin-login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      // Display server-provided error message
+      toast.error(result.message || "An error occurred. Please try again.");
+      return;
+    }
+
+    // Success: store user and navigate to dashboard
+      setAdminUser(result.data);
+      
+      console.log(result.data, "userInfo")
+      // setAdminUser(user); // Store the user in Zustand
+      // router.push("/dashboard");
+      setIsLoading(false)
+
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      // toast.error("An error occurred. Please try again.");
+      console.log(err,"error")
     } finally {
       setIsLoading(false);
     }
@@ -78,7 +99,7 @@ export default function LoginPage() {
                 />
               </div>
             </div>
-            {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+          
             <div className="w-full flex justify-center mt-6 items-center">
               <Button
                 className="w-1/2 rounded-full border shadow-md hover:bg-white hover:text-black hover:border-black"

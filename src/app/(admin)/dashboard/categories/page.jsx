@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   useReactTable,
@@ -19,14 +19,35 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import Link from "next/link";
+import axios from "axios";
+import toast from "react-hot-toast";
 
 export default function CategoriesPage() {
   const router = useRouter();
-  const [categories, setCategories] = useState([
-    { id: 1, name: "T-Shirts" },
-    { id: 2, name: "Jeans" },
-    { id: 3, name: "Dresses" },
-  ]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get("/api/categories");
+        setCategories(response.data);
+        console.log(response.data, "categories")
+      } catch (err) {
+        setError("Failed to fetch categories");
+        toast.error("Failed to fetch categories");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+ 
 
   const columns = [
     {
@@ -41,21 +62,19 @@ export default function CategoriesPage() {
       id: "actions",
       cell: ({ row }) => (
         <div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="mr-2"
-            onClick={() => handleEdit(row.original.id)}
+          <Link
+            href={`/dashboard/categories/edit/${row.original.id}`}
+            className="mr-2 text-xs flex-shrink-0 font-bold px-4 border p-2 shadow-md rounded-md hover:bg-black hover:text-white"
           >
             Edit
-          </Button>
-          <Button
+          </Link>
+          {/* <Button
             variant="destructive"
             size="sm"
             onClick={() => handleDelete(row.original.id)}
           >
             Delete
-          </Button>
+          </Button> */}
         </div>
       ),
     },
@@ -76,6 +95,10 @@ export default function CategoriesPage() {
   const handleDelete = (id) => {
     setCategories(categories.filter((c) => c.id !== id));
   };
+
+  // Render loading, error, or the categories list
+  if (loading) return <p>Loading categories...</p>;
+  if (error) return <p>{error}</p>;
 
   return (
     <>

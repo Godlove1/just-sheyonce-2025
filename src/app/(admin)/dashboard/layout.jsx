@@ -23,6 +23,7 @@ import {
 Settings,
   UserCircle
 } from "lucide-react";
+import { Toaster } from "react-hot-toast";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
@@ -43,10 +44,10 @@ export default function DashboardLayout({ children }) {
   });
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/login");
-    }
+    // const token = localStorage.getItem("token");
+    // if (!token) {
+    //   router.push("/login");
+    // }
   }, [router]);
 
   const handleLogout = () => {
@@ -56,6 +57,7 @@ export default function DashboardLayout({ children }) {
 
   return (
     <SidebarProvider>
+      <Toaster />
       <div className="flex w-full h-screen bg-gray-100 ">
         <Sidebar className="border-r border-gray-200">
           <SidebarHeader className="p-4 w-full flex justify-center items-center">

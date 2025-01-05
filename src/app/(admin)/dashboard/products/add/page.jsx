@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,21 +16,61 @@ import {
 } from "@/components/ui/select";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { CldUploadWidget } from "next-cloudinary";
+import toast from "react-hot-toast";
+import ImagePreview from "@/components/imagePreview";
+import axios from "axios";
 
 const SIZES = ["SM", "S", "M", "L", "XL", "XXL"];
 
 export default function AddProductPage() {
   const router = useRouter();
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [newProduct, setNewProduct] = useState({
     name: "",
     description: "",
-    category: "",
+    categoryId: "",
     price: "",
     hasSizes: false,
     sizes: [],
     images: [],
   });
-  const [error, setError] = useState("");
+
+  // Fetch categories from the API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get("/api/categories");
+        setCategories(response.data);
+        console.log(response.data, "categories");
+      } catch (err) {
+        setError("Failed to fetch categories");
+        toast.error("Failed to fetch categories");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+
+    if (files.length > 3) {
+      toast.error("Maximum 3 files allowed");
+      return;
+    } else {
+      setSelectedFiles((prevFiles) => [...prevFiles, ...files]);
+    }
+  };
+
+  const handleRemoveFile = (index) => {
+    setSelectedFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -38,9 +78,14 @@ export default function AddProductPage() {
   };
 
   const handleCategoryChange = (value) => {
-    setNewProduct({ ...newProduct, category: value });
-  };
+    const selectedCategory = categories.find((cat) => cat.name === value);
+    console.log("Selected value (name):", value);
+    console.log("Category found:", selectedCategory);
 
+    if (selectedCategory) {
+      setNewProduct({ ...newProduct, categoryId: selectedCategory.id });
+    }
+  };
   const handleSizeToggle = () => {
     setNewProduct({ ...newProduct, hasSizes: !newProduct.hasSizes, sizes: [] });
   };
@@ -52,36 +97,81 @@ export default function AddProductPage() {
     setNewProduct({ ...newProduct, sizes: updatedSizes });
   };
 
-  const handleImageUpload = async (e) => {
-    const files = Array.from(e.target.files);
-    const imageUrls = files.map((file) => URL.createObjectURL(file));
-    setNewProduct({
-      ...newProduct,
-      images: [...newProduct.images, ...imageUrls],
-    });
+  // image upload to cloudinary
+  const uploadToCloudinary = async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", "Unsigned");
+      formData.append("folder", "sheyonce");
+
+      const res = await axios.post(
+        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+        formData
+      );
+      console.log(res.data, "response");
+
+      return res?.data?.secure_url;
+    } catch (error) {
+      console.error("Error uploading image to Cloudinary:", error);
+      throw error;
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    setIsSubmitting(true);
 
-    if (!newProduct.name || !newProduct.category || !newProduct.price) {
-      setError("Please fill in all required fields");
+    if (!newProduct.name || !newProduct.categoryId || !newProduct.price) {
+      toast.error("Please fill in all required fields");
+      setIsSubmitting(false);
       return;
     }
 
     try {
-      // Here you would typically send the new product data to your backend
-      console.log("New product:", newProduct);
-      // For now, we'll just show a success message and redirect
-      alert("Product added successfully!");
-      router.push("/dashboard/products");
+      // Upload images first with a toast
+      const uploadImagesPromise = Promise.all(
+        selectedFiles.map((file) => uploadToCloudinary(file))
+      );
+
+      const uploadedUrls = await toast.promise(uploadImagesPromise, {
+        loading: "Uploading images...",
+        success: "Images uploaded successfully!",
+        error: "Failed to upload images",
+      });
+
+      const productData = {
+        name: newProduct.name,
+        price: parseInt(newProduct.price, 10),
+        description: newProduct.description || "",
+        categoryId: newProduct.categoryId,
+        hasSizes: newProduct.hasSizes || false,
+        sizes: newProduct.sizes || [],
+        images: uploadedUrls,
+      };
+
+      console.log("Sending product data:", productData);
+
+      // Create product
+      const res = await toast.promise(
+        axios.post("/api/products", productData),
+        {
+          loading: "Creating product...",
+          success: "Product created successfully!",
+          error: "Failed to create product",
+        }
+      );
+      console.log(res.data, "response");
+      setIsSubmitting(false);
+      // router.push("/dashboard/product");
     } catch (err) {
-      setError("Failed to add product. Please try again.");
+      console.error("Error:", err);
+      toast.error(err.message || "Failed to create product");
+      setIsSubmitting(false);
     }
   };
 
-  const [resource, setResource] = useState();
+  if (loading) return <p>categories are loading...</p>;
 
   return (
     <div className="max-w-2xl mx-auto md:mt-8">
@@ -116,23 +206,26 @@ export default function AddProductPage() {
               />
             </div>
 
-            <div>
-              <Label htmlFor="category">Category</Label>
-              <Select
-                name="category"
-                value={newProduct.category}
-                onValueChange={handleCategoryChange}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="T-Shirts">T-Shirts</SelectItem>
-                  <SelectItem value="Jeans">Jeans</SelectItem>
-                  <SelectItem value="Dresses">Dresses</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {!loading && (
+              <div>
+                <Label htmlFor="category">Category</Label>
+                <Select
+                  name="categoryId"
+                  onValueChange={handleCategoryChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories?.map((category, index) => (
+                      <SelectItem key={index} value={category?.name}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="flex items-center  space-x-2">
               <Checkbox
@@ -178,44 +271,20 @@ export default function AddProductPage() {
               />
             </div>
 
-            <div>
-              <CldUploadWidget
-                signatureEndpoint="/api/sign-cloudinary-params"
-                options={{
-                  sources: ["local"],
-                  multiple: true,
-                  maxFiles: 3,
-                  resourceType: "image",
-                  folder: "sheyonce"
-                }}
-                onSuccess={(result, { widget }) => {
-                  setResource(result?.info);
-                  // { public_id, secure_url, etc }
-                  console.log(result?.info, "files");
-                 
-                }}
-                onQueuesEnd={(result, { widget }) => {
-                  widget.close();
-                }}
-              >
-                {({ open }) => {
-                  function handleOnClick() {
-                    setResource(undefined);
-                    open();
-                  }
-                  return (
-                    <button
-                      onClick={handleOnClick}
-                      className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none text-sm focus:ring focus:border-blue-300"
-                    >
-                      Upload product Images
-                    </button>
-                  );
-                }}
-              </CldUploadWidget>
+            <div className="">
+              <label htmlFor="images">Images</label>
+              <input
+                type="file"
+                id="images"
+                accept="image/*"
+                multiple
+                onChange={handleFileChange}
+                className="w-full px-3 py-2 border rounded"
+              />
             </div>
 
-            {error && <p className="text-red-500 my-2 text-sm">{error}</p>}
+            <ImagePreview files={selectedFiles} onRemove={handleRemoveFile} />
+
             <div className="flex justify-end space-x-2 mt-6">
               <Button
                 type="button"
@@ -226,7 +295,9 @@ export default function AddProductPage() {
               >
                 Cancel
               </Button>
-              <Button type="submit">Add Product</Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "adding product..." : "Add Product"}
+              </Button>
             </div>
           </form>
         </CardContent>

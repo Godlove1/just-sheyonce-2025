@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useStore } from "@/lib/store";
+import toast from "react-hot-toast";
 
 
 export default function ProfilePage() {
@@ -25,7 +26,7 @@ export default function ProfilePage() {
     phone: "",
     address: "",
   });
-  const [error, setError] = useState("");
+ 
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -34,20 +35,15 @@ export default function ProfilePage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    
 
     if (profile.password !== profile.confirmPassword) {
-      setError("Passwords do not match");
+      toast.error("Passwords do not match");
       return;
     }
 
-    // Update the admin information in the Zustand store
-    setAdmin(profile.username, image);
-
-    // Here you would typically send the updated profile to your backend
-    console.log("Updated profile:", profile);
-    // For now, we'll just show a success message
-    alert("Profile updated successfully!");
+   
+    toast.success("Profile updated successfully!");
   };
 
   return (
@@ -58,8 +54,8 @@ export default function ProfilePage() {
           <CardTitle>Edit Profile</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4 ">
-            <div className="wrapper_lg w-full flex justify-center items-center">
+          <form onSubmit={handleSubmit} className="">
+            <div className="wrapper_lg w-full flex justify-center items-center mb-8">
               <div className="inner_lg w-full grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div>
                   <Label htmlFor="username">Username</Label>
@@ -180,9 +176,9 @@ export default function ProfilePage() {
                 </div>
               </div>
             </div>
-            {error && <p className="text-red-500 text-sm">{error}</p>}
+           
             <div className="w-full flex justify-center items-center mt-8">
-              <Button type="submit" className="w-1/2 h-12 text-xl">
+              <Button type="submit" className="w-1/3 font-bold mt-8">
                 Update Profile
               </Button>
             </div>
