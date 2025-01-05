@@ -20,8 +20,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import Link from "next/link";
-import axios from "axios";
 import toast from "react-hot-toast";
+import { db } from "@/lib/firebase";
+import { collection, getDocs, orderBy, query } from "firebase/firestore";
 
 export default function CategoriesPage() {
   const router = useRouter();
@@ -30,19 +31,28 @@ export default function CategoriesPage() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get("/api/categories");
-        setCategories(response.data);
-        console.log(response.data, "categories")
-      } catch (err) {
-        setError("Failed to fetch categories");
-        toast.error("Failed to fetch categories");
-      } finally {
-        setLoading(false);
-      }
-    };
+
+   const fetchCategories = async () => {
+     try {
+       setLoading(true);
+      const initialQuery = query(
+        collection(db, "categories")
+      );
+       const DocsSnapshot = await getDocs(initialQuery);
+       const dbData = DocsSnapshot.docs.map((doc) => ({
+         ...doc.data(),
+         id: doc.id, 
+       }));
+       console.log(dbData, "categories");
+       setCategories(dbData);
+     } catch (err) {
+       console.error("Error fetching categories:", err);
+       setError("Failed to fetch categories");
+       toast.error("Failed to fetch categories");
+     } finally {
+       setLoading(false);
+     }
+   };
 
     fetchCategories();
   }, []);
@@ -50,10 +60,10 @@ export default function CategoriesPage() {
  
 
   const columns = [
-    {
-      accessorKey: "id",
-      header: "ID",
-    },
+    // {
+    //   accessorKey: "id",
+    //   header: "ID",
+    // },
     {
       accessorKey: "name",
       header: "Name",

@@ -14,43 +14,69 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import toast from "react-hot-toast";
+import ImagePreview from "@/components/imagePreview"; // Assuming you have an ImagePreview component
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  collection,
+  getDocs,
+} from "firebase/firestore"; // Import Firestore functions
+import { db } from "@/lib/firebase"; // Import your Firestore instance
+import ImagePreviewEdit from "./imagePreview";
 
 const SIZES = ["SM", "S", "M", "L", "XL", "XXL"];
 
-export default function ClientEditProduct({ initialProduct }) {
-    
-    const id = 1;
+export default function ClientEditProduct({ id }) {
   const router = useRouter();
 
   const [product, setProduct] = useState({
-    name: "Classic T-Shirt" || "",
-    description:"A comfortable and stylish t-shirt" || "",
-    category: "T-Shirts" || "",
-    price: 299 || "",
+    name: "",
+    description: "",
+    categoryId: "",
+    price: "",
     hasSizes: false,
     sizes: [],
-    images: [],
+    images: [], // This will hold both existing and new image URLs
   });
 
+  const [categories, setCategories] = useState([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    // In a real application, you would fetch the product data from your API
-    // For this example, we'll use mock data
-    const mockProduct = {
-      id: id,
-      name: "Classic T-Shirt",
-      description: "A comfortable and stylish t-shirt",
-      category: "T-Shirts",
-      price: "29.99",
-      hasSizes: true,
-      sizes: ["S", "M", "L"],
-      images: ["/1.jpg"],
+    const fetchProduct = async () => {
+      try {
+        const productRef = doc(db, "products", id);
+        const productSnap = await getDoc(productRef);
+        if (productSnap.exists()) {
+          setProduct(productSnap.data());
+        } else {
+          console.error("No such product!");
+        }
+      } catch (err) {
+        console.error("Error fetching product:", err);
+      }
     };
-    setProduct(mockProduct);
+
+    const fetchCategories = async () => {
+      try {
+        const categoriesCollection = collection(db, "categories");
+        const categorySnapshot = await getDocs(categoriesCollection);
+        const categoryList = categorySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setCategories(categoryList);
+      } catch (err) {
+        console.error("Error fetching categories:", err);
+      }
+    };
+
+    fetchProduct();
+    fetchCategories();
   }, [id]);
-    
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -58,7 +84,10 @@ export default function ClientEditProduct({ initialProduct }) {
   };
 
   const handleCategoryChange = (value) => {
-    setProduct({ ...product, category: value });
+    const selectedCategory = categories.find((cat) => cat.name === value);
+    if (selectedCategory) {
+      setProduct({ ...product, categoryId: selectedCategory.id });
+    }
   };
 
   const handleSizeToggle = () => {
@@ -72,35 +101,54 @@ export default function ClientEditProduct({ initialProduct }) {
     setProduct({ ...product, sizes: updatedSizes });
   };
 
-  const handleImageUpload = async (e) => {
+  const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
-    const imageUrls = files.map((file) => URL.createObjectURL(file));
-    setProduct({ ...product, images: [...product.images, ...imageUrls] });
+
+    // Check if the total number of images exceeds 3
+    if (product.images.length + files.length > 3) {
+      toast.error(
+        "You can only upload a maximum of 3 images. Please remove some images first."
+      );
+      return;
+    }
+
+    const newImageUrls = files.map((file) => URL.createObjectURL(file));
+    setProduct({ ...product, images: [...product.images, ...newImageUrls] });
+  };
+
+  const handleRemoveImage = (index) => {
+    const updatedImages = product.images.filter((_, i) => i !== index);
+    setProduct({ ...product, images: updatedImages });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    if (!product.name || !product.category || !product.price) {
+    if (!product.name || !product.categoryId || !product.price) {
       setError("Please fill in all required fields");
       return;
     }
 
     try {
-      // Here you would typically send the updated product data to your backend
-      console.log("Updated product:", product);
-      // For now, we'll just show a success message and redirect
-      alert("Product updated successfully!");
+      const productRef = doc(db, "products", id); // Get a reference to the product document
+      await updateDoc(productRef, {
+        name: product.name,
+        description: product.description,
+        categoryId: product.categoryId,
+        price: parseFloat(product.price), // Ensure price is a number
+        hasSizes: product.hasSizes,
+        sizes: product.sizes,
+        images: product.images, // Use the updated images array
+      });
+
+      toast.success("Product updated successfully!");
       router.push("/dashboard/products");
     } catch (err) {
       setError("Failed to update product. Please try again.");
+      console.error("Error updating product:", err);
     }
   };
-
-
-
-  
 
   return (
     <div className="max-w-2xl mx-auto md:mt-8">
@@ -146,9 +194,11 @@ export default function ClientEditProduct({ initialProduct }) {
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="T-Shirts">T-Shirts</SelectItem>
-                  <SelectItem value="Jeans">Jeans</SelectItem>
-                  <SelectItem value="Dresses">Dresses</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.name}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -182,7 +232,7 @@ export default function ClientEditProduct({ initialProduct }) {
 
             <div>
               <Label htmlFor="description">
-                Description <span className="text-xs italic"> (optional)</span>{" "}
+                Description <span className="text-xs italic"> (optional)</span>
               </Label>
               <Textarea
                 id="description"
@@ -204,18 +254,8 @@ export default function ClientEditProduct({ initialProduct }) {
                 accept="image/*"
               />
             </div>
-            {product.images.length > 0 && (
-              <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
-                {product.images.map((image, index) => (
-                  <img
-                    key={index}
-                    src={image}
-                    alt={`Product ${index + 1}`}
-                    className="w-20 h-20 object-cover rounded border"
-                  />
-                ))}
-              </div>
-            )}
+
+            <ImagePreviewEdit files={product.images} onRemove={handleRemoveImage} />
 
             {error && <p className="text-red-500 my-2 text-sm">{error}</p>}
             <div className="flex justify-end space-x-2 mt-6">

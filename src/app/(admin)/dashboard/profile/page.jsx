@@ -7,12 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useStore } from "@/lib/store";
 import toast from "react-hot-toast";
-
+import { doc, setDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 export default function ProfilePage() {
-
-  const { adminUser } = useStore();
-
+  const { adminUser, setAdminUser } = useStore();
+  const [action, setAction] = useState(false);
   const [profile, setProfile] = useState({
     username: adminUser?.name || "admin",
     email: "admin@example.com",
@@ -26,7 +26,6 @@ export default function ProfilePage() {
     phone: "",
     address: "",
   });
- 
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -35,15 +34,46 @@ export default function ProfilePage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
 
     if (profile.password !== profile.confirmPassword) {
       toast.error("Passwords do not match");
       return;
     }
+    setAction(true);
 
-   
-    toast.success("Profile updated successfully!");
+    try {
+      const userRef = doc(db, "adminUser", adminUser.id);
+      await toast.promise(
+        setDoc(userRef, {
+          name: profile.username,
+          email: profile.email,
+          instagram: profile.instagram,
+          snapchat: profile.snapchat,
+          facebook: profile.facebook,
+          twitter: profile.twitter,
+          whatsapp: profile.whatsapp,
+          phone: profile.phone,
+          address: profile.address,
+        }),
+        {
+          loading: "Updating profile...",
+          success: "Profile updated successfully!",
+          error: "Failed to update profile.",
+        }
+      );
+
+      setAction(false);
+      // Update the Zustand store with the new profile data
+      setAdminUser({
+        ...adminUser,
+        name: profile.username,
+        email: profile.email,
+      });
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error("Failed to update profile.");
+      setAction(false);
+    }
   };
 
   return (
@@ -110,7 +140,7 @@ export default function ProfilePage() {
                   <Label htmlFor="snapchat">Snapchat</Label>
                   <Input
                     id="snapchat"
-                    name="snapchat"
+                    name=" snapchat"
                     className="text-sm h-12"
                     placeholder="snap link"
                     value={profile.snapchat}
@@ -157,7 +187,7 @@ export default function ProfilePage() {
                     id="phone"
                     name="phone"
                     className="text-sm h-12"
-                    placeholder="phon number"
+                    placeholder="phone number"
                     value={profile.phone}
                     onChange={handleInputChange}
                     required
@@ -176,9 +206,13 @@ export default function ProfilePage() {
                 </div>
               </div>
             </div>
-           
+
             <div className="w-full flex justify-center items-center mt-8">
-              <Button type="submit" className="w-1/3 font-bold mt-8">
+              <Button
+                type="submit"
+                className="w-1/3 font-bold mt-8"
+                disabled={action}
+              >
                 Update Profile
               </Button>
             </div>

@@ -14,11 +14,12 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { CldUploadWidget } from "next-cloudinary";
+import { Card, CardContent } from "@/components/ui/card";
 import toast from "react-hot-toast";
 import ImagePreview from "@/components/imagePreview";
-import axios from "axios";
+import { collection, doc, getDocs, query, setDoc } from "firebase/firestore";
+import axios from "axios"; // Ensure axios is imported for image uploads
+import { db } from "@/lib/firebase";
 
 const SIZES = ["SM", "S", "M", "L", "XL", "XXL"];
 
@@ -36,18 +37,22 @@ export default function AddProductPage() {
     hasSizes: false,
     sizes: [],
     images: [],
+    status: "active",
   });
 
-  // Fetch categories from the API
+  // Fetch categories from Firestore
   useEffect(() => {
     const fetchCategories = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
-        const response = await axios.get("/api/categories");
-        setCategories(response.data);
-        console.log(response.data, "categories");
+        const initialQuery = query(collection(db, "categories"));
+        const DocsSnapshot = await getDocs(initialQuery);
+        const dbData = DocsSnapshot.docs.map((doc) => ({
+          ...doc.data(),
+          id: doc.id,
+        }));
+        setCategories(dbData);
       } catch (err) {
-        setError("Failed to fetch categories");
         toast.error("Failed to fetch categories");
       } finally {
         setLoading(false);
@@ -57,39 +62,41 @@ export default function AddProductPage() {
     fetchCategories();
   }, []);
 
+  // Handle file selection
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
-
     if (files.length > 3) {
       toast.error("Maximum 3 files allowed");
       return;
-    } else {
-      setSelectedFiles((prevFiles) => [...prevFiles, ...files]);
     }
+    setSelectedFiles((prevFiles) => [...prevFiles, ...files]);
   };
 
+  // Remove selected file
   const handleRemoveFile = (index) => {
     setSelectedFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
   };
 
+  // Handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewProduct({ ...newProduct, [name]: value });
   };
 
+  // Handle category selection
   const handleCategoryChange = (value) => {
     const selectedCategory = categories.find((cat) => cat.name === value);
-    console.log("Selected value (name):", value);
-    console.log("Category found:", selectedCategory);
-
     if (selectedCategory) {
       setNewProduct({ ...newProduct, categoryId: selectedCategory.id });
     }
   };
+
+  // Toggle size options
   const handleSizeToggle = () => {
     setNewProduct({ ...newProduct, hasSizes: !newProduct.hasSizes, sizes: [] });
   };
 
+  // Handle size selection
   const handleSizeChange = (size) => {
     const updatedSizes = newProduct.sizes.includes(size)
       ? newProduct.sizes.filter((s) => s !== size)
@@ -97,7 +104,7 @@ export default function AddProductPage() {
     setNewProduct({ ...newProduct, sizes: updatedSizes });
   };
 
-  // image upload to cloudinary
+  // Upload image to Cloudinary
   const uploadToCloudinary = async (file) => {
     try {
       const formData = new FormData();
@@ -109,8 +116,6 @@ export default function AddProductPage() {
         `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
         formData
       );
-      console.log(res.data, "response");
-
       return res?.data?.secure_url;
     } catch (error) {
       console.error("Error uploading image to Cloudinary:", error);
@@ -118,6 +123,7 @@ export default function AddProductPage() {
     }
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -140,7 +146,10 @@ export default function AddProductPage() {
         error: "Failed to upload images",
       });
 
+      const Id = doc(collection(db, "products")).id;
+
       const productData = {
+        id: Id,
         name: newProduct.name,
         price: parseInt(newProduct.price, 10),
         description: newProduct.description || "",
@@ -148,22 +157,34 @@ export default function AddProductPage() {
         hasSizes: newProduct.hasSizes || false,
         sizes: newProduct.sizes || [],
         images: uploadedUrls,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        status: newProduct.status || "active",
       };
 
-      console.log("Sending product data:", productData);
+      console.log(productData, "product");
 
       // Create product
-      const res = await toast.promise(
-        axios.post("/api/products", productData),
-        {
-          loading: "Creating product...",
-          success: "Product created successfully!",
-          error: "Failed to create product",
-        }
-      );
-      console.log(res.data, "response");
+      await toast.promise(setDoc(doc(db, "products", Id), productData), {
+        loading: "Creating product...",
+        success: "Product created successfully!",
+        error: "Failed to create product",
+      });
+
       setIsSubmitting(false);
-      // router.push("/dashboard/product");
+
+      setNewProduct({
+        name: "",
+        description: "",
+        categoryId: "",
+        price: "",
+        hasSizes: false,
+        sizes: [],
+        images: [],
+        status: "active",
+      });
+      setSelectedFiles([]);
+      // router.push("/dashboard/products");
     } catch (err) {
       console.error("Error:", err);
       toast.error(err.message || "Failed to create product");
@@ -171,7 +192,7 @@ export default function AddProductPage() {
     }
   };
 
-  if (loading) return <p>categories are loading...</p>;
+  if (loading) return <p>Categories are loading...</p>;
 
   return (
     <div className="max-w-2xl mx-auto md:mt-8">
@@ -209,10 +230,7 @@ export default function AddProductPage() {
             {!loading && (
               <div>
                 <Label htmlFor="category">Category</Label>
-                <Select
-                  name="categoryId"
-                  onValueChange={handleCategoryChange}
-                >
+                <Select name="categoryId" onValueChange={handleCategoryChange}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
@@ -227,7 +245,7 @@ export default function AddProductPage() {
               </div>
             )}
 
-            <div className="flex items-center  space-x-2">
+            <div className="flex items-center space-x-2">
               <Checkbox
                 id="hasSizes"
                 checked={newProduct.hasSizes}
@@ -238,7 +256,7 @@ export default function AddProductPage() {
 
             {newProduct.hasSizes && (
               <div className="space-y-2 bg-gray-100 italic text-sm rounded-md">
-                <Label className="pt-4 pb-3 px-4">select sizes</Label>
+                <Label className="pt-4 pb-3 px-4">Select Sizes</Label>
                 <div className="flex flex-wrap gap-2">
                   {SIZES.map((size) => (
                     <div
@@ -259,7 +277,7 @@ export default function AddProductPage() {
 
             <div>
               <Label htmlFor="description">
-                Description <span className="text-xs italic"> (optional)</span>{" "}
+                Description <span className="text-xs italic"> (optional)</span>
               </Label>
               <Textarea
                 id="description"
@@ -271,7 +289,7 @@ export default function AddProductPage() {
               />
             </div>
 
-            <div className="">
+            <div>
               <label htmlFor="images">Images</label>
               <input
                 type="file"
@@ -296,7 +314,7 @@ export default function AddProductPage() {
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "adding product..." : "Add Product"}
+                {isSubmitting ? "Adding product..." : "Add Product"}
               </Button>
             </div>
           </form>

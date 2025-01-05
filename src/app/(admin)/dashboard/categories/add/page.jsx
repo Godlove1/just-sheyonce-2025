@@ -7,44 +7,45 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import toast from "react-hot-toast";
-import {  ArrowLeft } from "lucide-react";
-import axios from "axios";
+import { ArrowLeft } from "lucide-react";
+import { getFirestore, collection, doc, setDoc } from "firebase/firestore"; // Import Firestore functions
+import { db } from "@/lib/firebase";
+
 
 export default function AddCategoryPage() {
   const router = useRouter();
   const [newCategory, setNewCategory] = useState("");
-  const [isAction, setIsAction] = useState(false)
-  
+  const [isAction, setIsAction] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!newCategory.trim()) {
       toast.error("Category name is required");
       return;
     }
 
-    setIsAction(true)
+    setIsAction(true);
 
-   try {
-     const res = await toast.promise(
-       axios.post("/api/categories", { name: newCategory }),
-       {
-         loading: "Creating category...",
-         success: "Category created successfully!",
-         error: "Failed to create category",
-       }
-     );
-     console.log(res.data, "response");
-     setNewCategory("")
-setIsAction(false);
-   } catch (err) {
-     console.log(err, "ERROR");
-     toast.error("Failed to add category. Please try again.");
-     setIsAction(false);
-   }
+    try {
+      // Create a new document reference with a unique ID
+      const categoryRef = doc(collection(db, "categories")); // Get a reference to the new document
+      await setDoc(categoryRef, {
+        name: newCategory,
+        status: true,
+        id: categoryRef.id,
+      }); // Set the document data
+
+      setNewCategory(""); // Clear the input field
+      toast.success("Category added successfully.");
+      router.push("/dashboard/categories"); // Redirect to the categories page
+    } catch (err) {
+      console.error(err, "ERROR");
+      toast.error("Failed to add category. Please try again.");
+    } finally {
+      setIsAction(false); // Reset action state
+    }
   };
-
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -62,16 +63,18 @@ setIsAction(false);
                 required
               />
             </div>
-           
+
             <div className="flex justify-end space-x-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => router.push("/dashboard/categories")}
               >
-               <ArrowLeft /> go back
+                <ArrowLeft /> Go Back
               </Button>
-              <Button type="submit" disabled={isAction}>Add Category</Button>
+              <Button type="submit" disabled={isAction}>
+                Add Category
+              </Button>
             </div>
           </form>
         </CardContent>

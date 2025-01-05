@@ -23,33 +23,56 @@ import {
 } from "@/components/ui/table";
 import Link from "next/link";
 import { TrashIcon } from "lucide-react";
-import axios from "axios";
+import { db } from "@/lib/firebase";
+import { collection, getDocs, query } from "firebase/firestore";
 
 export default function ProductsPage() {
   const router = useRouter();
 
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   const [globalFilter, setGlobalFilter] = useState("");
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchProductsAndCategories = async () => {
       try {
         setLoading(true);
-        const response = await axios.get("/api/products");
-        setProducts(response.data);
-        console.log(response.data, "all products");
+        const productsQuery = query(collection(db, "products"));
+        const categoriesQuery = query(collection(db, "categories"));
+        
+        const [productsSnapshot, categoriesSnapshot] = await Promise.all([
+          getDocs(productsQuery),
+          getDocs(categoriesQuery),
+        ]);
+
+        const dbProducts = productsSnapshot.docs.map((doc) => ({
+          ...doc.data(),
+          id: doc.id,
+        }));
+
+        const dbCategories = categoriesSnapshot.docs.map((doc) => ({
+          ...doc.data(),
+          id: doc.id,
+        }));
+
+        setProducts(dbProducts);
+        setCategories(dbCategories);
       } catch (err) {
-        setError("Failed to fetch products");
+        setError("Failed to fetch products or categories");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProducts();
+    fetchProductsAndCategories();
   }, []);
+
+  const categoryMap = categories.reduce((acc, category) => {
+    acc[category.id] = category.name;
+    return acc;
+  }, {});
 
   const columns = [
     {
@@ -57,8 +80,9 @@ export default function ProductsPage() {
       header: "Name",
     },
     {
-      accessorKey: "category",
+      accessorKey: "categoryId",
       header: "Category",
+      cell: ({ row }) => categoryMap[row.original.categoryId] || "Unknown",
     },
     {
       accessorKey: "price",
@@ -120,7 +144,7 @@ export default function ProductsPage() {
           Add New Product
         </Button>
       </div>
-      <Card>
+      < Card>
         <CardHeader>
           <CardTitle className="text-lg">Product List</CardTitle>
           <Input
@@ -151,36 +175,48 @@ export default function ProductsPage() {
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-          <div className="flex items-center justify-end space-x-2 py-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              Next
-            </Button>
+          <div className="flex justify-between mt-4">
+            <div>
+              <span>
+                Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+              </span>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => table.setPageIndex(0)}
+                disabled={!table.getCanPreviousPage()}
+              >
+                {"<<"}
+              </Button>
+              <Button
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                {"<"}
+              </Button>
+              <Button
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                {">"}
+              </Button>
+              <Button
+                onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+                disabled={!table.getCanNextPage()}
+              >
+                {">>"}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
     </>
   );
-}
+} 
