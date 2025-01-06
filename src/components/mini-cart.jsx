@@ -36,12 +36,12 @@ export function MiniCart() {
         <div className="divide-y">
           {cart.map((item) => (
             <div
-              key={`${item.id}-${item.selectedColor}`}
+              key={`${item.id}-${item.selectedSize}`}
               className="p-4 flex gap-4"
             >
               <div className="relative w-20 h-20 flex-shrink-0">
                 <Image
-                  src={item.image}
+                  src={item?.images[0]}
                   alt={item.name}
                   fill
                   className="object-cover rounded"
@@ -50,9 +50,9 @@ export function MiniCart() {
 
               <div className="flex-1">
                 <div className="flex justify-between">
-                  <h3 className="font-medium">{item.name}</h3>
+                  <h3 className="font-medium capitalize">{item.name}</h3>
                   <button
-                    onClick={() => removeFromCart(item.id, item.selectedColor)}
+                    onClick={() => removeFromCart(item.id, item.selectedSize)}
                     className="text-gray-400 hover:text-gray-500"
                   >
                     <X className="w-4 h-4" />
@@ -60,10 +60,10 @@ export function MiniCart() {
                 </div>
 
                 <p className="text-sm text-gray-500 mt-1">
-                  Color: {item.selectedColor}
+                  Size: {item.selectedSize}
                 </p>
                 <p className="text-sm font-medium mt-1">
-                  &#8355;{item.price.toFixed(2)}
+                  &#8355;{item.price.toFixed(1)}
                 </p>
 
                 <div className="flex items-center gap-2 mt-2">
@@ -71,7 +71,7 @@ export function MiniCart() {
                     onClick={() =>
                       updateQuantity(
                         item.id,
-                        item.selectedColor,
+                        item.selectedSize,
                         Math.max(1, item.quantity - 1)
                       )
                     }
@@ -84,7 +84,7 @@ export function MiniCart() {
                     onClick={() =>
                       updateQuantity(
                         item.id,
-                        item.selectedColor,
+                        item.selectedSize,
                         item.quantity + 1
                       )
                     }
@@ -102,7 +102,7 @@ export function MiniCart() {
       <div className="border-t p-4 space-y-4">
         <div className="flex justify-between text-lg font-medium">
           <span>Total</span>
-          <span>&#8355;{total.toFixed(2)}</span>
+          <span>&#8355;{total.toFixed(1)}</span>
         </div>
         <Link href="/checkout" className="block">
           <Button className="w-full" size="lg">

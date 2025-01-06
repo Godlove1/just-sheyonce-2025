@@ -28,24 +28,29 @@ export function ImageCarousel({ images }) {
           className="object-cover transition-opacity duration-500"
         />
       </div>
-      <Button
-        variant="outline"
-        size="icon"
-        className="absolute top-1/2 left-2 transform -translate-y-1/2"
-        onClick={() =>
-          goToSlide((currentIndex - 1 + images.length) % images.length)
-        }
-      >
-        <ChevronLeft className="w-4 h-4" />
-      </Button>
-      <Button
-        variant="outline"
-        size="icon"
-        className="absolute top-1/2 right-2 transform -translate-y-1/2"
-        onClick={() => goToSlide((currentIndex + 1) % images.length)}
-      >
-        <ChevronRight className="w-4 h-4" />
-      </Button>
+      {images.length > 1 && (
+        <>
+          {" "}
+          <Button
+            variant="outline"
+            size="icon"
+            className="absolute top-1/2 left-2 transform -translate-y-1/2"
+            onClick={() =>
+              goToSlide((currentIndex - 1 + images.length) % images.length)
+            }
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="absolute top-1/2 right-2 transform -translate-y-1/2"
+            onClick={() => goToSlide((currentIndex + 1) % images.length)}
+          >
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </>
+      )}
       <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-2">
         {images.map((_, index) => (
           <button

@@ -1,11 +1,45 @@
 "use client"
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import {  Twitter, Linkedin, Instagram, Facebook, Twitch, TwitterIcon, Ghost, InstagramIcon, PhoneCall } from 'lucide-react';
 import Image from 'next/image';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import toast from 'react-hot-toast';
 
 export default function Footer() {
 
-    const currentYear = new Date().getFullYear();
+  const currentYear = new Date().getFullYear();
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [info, setInfo] = useState([])
+  
+   useEffect(() => {
+     const fetchInfo = async () => {
+       setIsLoading(true);
+       try {
+         const infoRef = doc(db, "adminUser", "vQz0BzZXRIOjQYJILn9D"); // Create a reference to the info document
+         const infoPromise = getDoc(infoRef); // Fetch the info document
+
+         // Wait for both promises to resolve
+         const [infoSnap] = await Promise.all([infoPromise]);
+
+         if (infoSnap.exists()) {
+           setInfo(infoSnap.data()); // Set the info data
+           console.log(infoSnap.data(), "info");
+         } else {
+           toast.error("info not found");
+           return; // Exit if info is not found
+         }
+       } catch (err) {
+         console.error(err);
+         toast.error("Failed to load info");
+       } finally {
+         setIsLoading(false);
+       }
+     };
+
+     fetchInfo();
+   }, []);
     
   return (
     <>
@@ -26,17 +60,15 @@ export default function Footer() {
             <div className="flex flex-col items-center justify-center  ">
               <h3 className="text-sm font-semibold mb-4">Contact Us</h3>
               <address className="text-gray-300 not-italic text-center text-xs ">
-                123 Business Street
+               {info?.address}
                 <br />
-                City, State 12345
+                {/* City, State 12345
+                <br /> */}
+                Email: {info?.email}
                 <br />
-                Phone: (123) 456-7890
+                Calls only: {info?.phone}
                 <br />
-                Email: info@company.com
-                <br />
-                Calls only: info@company.com
-                <br />
-                Whatsapp only: info@company.com
+                Whatsapp only:{info?.whatsapp}
               </address>
             </div>
 
@@ -45,31 +77,31 @@ export default function Footer() {
               <h3 className="text-sm font-semibold mb-4">Connect With Us</h3>
               <div className="flex space-x-4 text-xs">
                 <a
-                  href="https://github.com"
+                  href={info?.facebook}
                   className="hover:text-gray-400 transition-colors"
                 >
                   <Facebook size={24} />
                 </a>
                 <a
-                  href="https://twitter.com"
+                  href={info?.twitter}
                   className="hover:text-gray-400 transition-colors"
                 >
                   <TwitterIcon size={24} />
                 </a>
                 <a
-                  href="https://linkedin.com"
+                  href={info?.snapchat}
                   className="hover:text-gray-400 transition-colors"
                 >
                   <Ghost size={24} />
                 </a>
                 <a
-                  href="https://instagram.com"
+                  href={info?.instagram}
                   className="hover:text-gray-400 transition-colors"
                 >
                   <InstagramIcon size={24} />
                 </a>
                 <a
-                  href={`tel:+237676579370`}
+                  href={`tel:${info?.phone}`}
                   className="hover:text-gray-400 transition-colors"
                 >
                   <PhoneCall size={24} />

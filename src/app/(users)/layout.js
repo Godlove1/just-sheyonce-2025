@@ -8,7 +8,7 @@ export default function UsersLayout({ children }) {
   return (
     <>
       {/* <CartProviderContext> */}
-      <div className="mx-auto max-w-md bg-white min-h-screen">
+      <div className="mx-auto max-w-md ">
         <Header />
         <main>{children}</main>
         <Footer />

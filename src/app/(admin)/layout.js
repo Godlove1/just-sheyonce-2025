@@ -1,4 +1,3 @@
-import { Toaster } from "react-hot-toast";
 
 export const metadata = {
   title: 'Sheyonce Admin',
@@ -8,7 +7,6 @@ export const metadata = {
 export default function AdminDashboardLayout({ children }) {
   return (
     <div className="dashboard-layout">
-      <Toaster />
       <main>{children}</main>
     </div>
   );
