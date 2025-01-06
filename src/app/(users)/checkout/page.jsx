@@ -20,16 +20,17 @@ export default function CheckoutPage() {
 
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const handleSubmit = async(e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-       const orderRef = doc(collection(db, "orders"));
-       await setDoc(orderRef, {
-         ...cart,
-         total,
-         id: categoryRef.id,
-       }); 
-  
+    toast.info("generating order request");
+
+    const orderRef = doc(collection(db, "orders"));
+    await setDoc(orderRef, {
+      ...cart,
+      total,
+      orderId: orderRef.id,
+    });
 
     // Create WhatsApp message
     const message =
@@ -56,16 +57,12 @@ export default function CheckoutPage() {
     window.location.href = `https://wa.me/1234567890?text=${encodedMessage}`;
   };
 
-
-
- 
-  
   if (cart.length === 0) {
     router.push("/");
     return null;
   }
 
-  console.log(cart, "cart")
+  console.log(cart, "cart");
   return (
     <>
       <div className="min-h-screen p-4">
@@ -86,7 +83,6 @@ export default function CheckoutPage() {
               />
             </div>
 
-        
             <div>
               <Label htmlFor="phone">Phone</Label>
               <Input
