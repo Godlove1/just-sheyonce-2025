@@ -88,7 +88,7 @@ export default function ProductsPage() {
     {
       accessorKey: "price",
       header: "Price",
-      cell: ({ row }) => `F ${row.original.price.toFixed(2)}`,
+      cell: ({ row }) => `F ${row.original.price.toLocaleString()}`,
     },
     {
       id: "actions",

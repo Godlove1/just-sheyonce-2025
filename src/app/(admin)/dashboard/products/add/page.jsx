@@ -110,7 +110,7 @@ export default function AddProductPage() {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("upload_preset", "Unsigned");
-      formData.append("folder", "sheyonce");
+      formData.append("folder", "sheyonceProducts");
 
       const res = await axios.post(
         `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,

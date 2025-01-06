@@ -106,7 +106,7 @@ export default function ProductDetailPage({ id }) {
   };
 
   return (
-    <div className="space-y-4 pb-6">
+    <div className="space-y-4 pb-6 mb-16">
       <ImageCarousel images={product?.images} /> 
       <button
         className="absolute top-24 right-4 p-2 z-40 bg-white rounded-full shadow-lg"
@@ -134,7 +134,7 @@ export default function ProductDetailPage({ id }) {
 
       <div className="px-4 space-y-4">
         <h1 className="text-2xl font-bold capitalize">{product?.name}</h1>
-        <p className="text-2xl">&#8355; {product?.price.toFixed(0)}</p>
+        <p className="text-2xl">&#8355; {product?.price.toLocaleString()}</p>
 
         {product?.hasSizes && product?.sizes.length > 0 && (
           <div className="space-y-2 text-sm">
@@ -191,7 +191,7 @@ export default function ProductDetailPage({ id }) {
             {isLoading ? (
               <LoadingSpinner className="text-white" />
             ) : (
-              `Add ₣ ${(product?.price * quantity).toFixed(2)}`
+              `Add XAF ${(product?.price * quantity).toLocaleString()}`
             )}
           </Button>
         </div>

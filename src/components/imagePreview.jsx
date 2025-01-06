@@ -9,7 +9,7 @@ const ImagePreview = ({ files, onRemove }) => {
           <img
             src={URL.createObjectURL(file)}
             alt={`Preview ${index + 1}`}
-            className="w-full h-32 object-cover rounded"
+            className="w-full h-32 object-contain rounded"
           />
           <button
             type="button"

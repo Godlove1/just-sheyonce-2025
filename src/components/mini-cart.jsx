@@ -63,7 +63,7 @@ export function MiniCart() {
                   Size: {item.selectedSize}
                 </p>
                 <p className="text-sm font-medium mt-1">
-                  &#8355;{item.price.toFixed(1)}
+                  &#8355;{item.price.toLocaleString()}
                 </p>
 
                 <div className="flex items-center gap-2 mt-2">

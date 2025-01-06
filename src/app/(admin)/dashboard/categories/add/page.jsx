@@ -10,12 +10,50 @@ import toast from "react-hot-toast";
 import { ArrowLeft } from "lucide-react";
 import { getFirestore, collection, doc, setDoc } from "firebase/firestore"; // Import Firestore functions
 import { db } from "@/lib/firebase";
+import ImagePreview from "@/components/imagePreview";
+import axios from "axios";
 
 
 export default function AddCategoryPage() {
   const router = useRouter();
   const [newCategory, setNewCategory] = useState("");
   const [isAction, setIsAction] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+
+  // Handle file selection
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length > 1) {
+      toast.error("Maximum 1 files allowed");
+      return;
+    }
+    setSelectedFiles((prevFiles) => [...prevFiles, ...files]);
+  };
+
+  // Remove selected file
+  const handleRemoveFile = (index) => {
+    setSelectedFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
+  };
+
+  // Upload image to Cloudinary
+  const uploadToCloudinary = async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", "Unsigned");
+      formData.append("folder", "sheyonceCategories");
+
+      const res = await axios.post(
+        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+        formData
+      );
+      return res?.data?.secure_url;
+    } catch (error) {
+      console.error("Error uploading image to Cloudinary:", error);
+      throw error;
+    }
+  };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,10 +66,22 @@ export default function AddCategoryPage() {
     setIsAction(true);
 
     try {
+      // Upload images first with a toast
+      const uploadImagesPromise = Promise.all(
+        selectedFiles.map((file) => uploadToCloudinary(file))
+      );
+
+      const uploadedUrls = await toast.promise(uploadImagesPromise, {
+        loading: "Uploading images...",
+        success: "Images uploaded successfully!",
+        error: "Failed to upload images",
+      });
+
       // Create a new document reference with a unique ID
       const categoryRef = doc(collection(db, "categories")); // Get a reference to the new document
       await setDoc(categoryRef, {
         name: newCategory,
+        catImage: uploadedUrls,
         status: true,
         id: categoryRef.id,
       }); // Set the document data
@@ -54,7 +104,9 @@ export default function AddCategoryPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="md:mt-6">
-              <Label htmlFor="categoryName">Category Name</Label>
+              <Label htmlFor="categoryName" className="p-2">
+                Category Name
+              </Label>
               <Input
                 id="categoryName"
                 value={newCategory}
@@ -63,6 +115,20 @@ export default function AddCategoryPage() {
                 required
               />
             </div>
+
+            <div className="md:mt-4">
+              <Label htmlFor="categoryName">Category Image</Label>
+              <Input
+                id="categoryImage"
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleFileChange}
+                required
+              />
+            </div>
+
+            <ImagePreview files={selectedFiles} onRemove={handleRemoveFile} />
 
             <div className="flex justify-end space-x-2">
               <Button

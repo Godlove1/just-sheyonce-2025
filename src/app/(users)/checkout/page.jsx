@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
+import { collection, doc, setDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -18,8 +20,16 @@ export default function CheckoutPage() {
 
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
+
+       const orderRef = doc(collection(db, "orders"));
+       await setDoc(orderRef, {
+         ...cart,
+         total,
+         id: categoryRef.id,
+       }); 
+  
 
     // Create WhatsApp message
     const message =
@@ -27,9 +37,9 @@ export default function CheckoutPage() {
       `Items:\n${cart
         .map(
           (item) =>
-            `- ${item.name} (${item.selectedColor}) x${item.quantity} - &#8355;${(
+            `- ${item.name} (${item.selectedSize}) x${item.quantity} - XAF${(
               item.price * item.quantity
-            ).toFixed(2)}`
+            ).toLocaleString()}`
         )
         .join("\n")}\n\n` +
       `Total: $&#8355;{total.toFixed(2)}\n\n` +
@@ -46,11 +56,16 @@ export default function CheckoutPage() {
     window.location.href = `https://wa.me/1234567890?text=${encodedMessage}`;
   };
 
+
+
+ 
+  
   if (cart.length === 0) {
     router.push("/");
     return null;
   }
 
+  console.log(cart, "cart")
   return (
     <>
       <div className="min-h-screen p-4">
@@ -103,7 +118,7 @@ export default function CheckoutPage() {
           <div className="border-t pt-6">
             <div className="flex justify-between text-lg font-medium mb-6">
               <span>Total</span>
-              <span>&#8355;{total.toFixed(2)}</span>
+              <span>XAF {total.toLocaleString()}</span>
             </div>
 
             <Button type="submit" className="w-full" size="lg" id="OrderButton">

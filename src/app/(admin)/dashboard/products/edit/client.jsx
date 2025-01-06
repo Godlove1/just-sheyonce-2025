@@ -16,21 +16,23 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import toast from "react-hot-toast";
-import ImagePreview from "@/components/imagePreview"; // Assuming you have an ImagePreview component
 import {
   doc,
   getDoc,
   updateDoc,
   collection,
   getDocs,
-} from "firebase/firestore"; // Import Firestore functions
-import { db } from "@/lib/firebase"; // Import your Firestore instance
+} from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import ImagePreviewEdit from "./imagePreview";
+import axios from "axios";
 
 const SIZES = ["SM", "S", "M", "L", "XL", "XXL"];
 
-export default function ClientEditProduct({ id }) {
+export default function EditProductForm({ productId }) {
   const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [product, setProduct] = useState({
     name: "",
@@ -39,116 +41,207 @@ export default function ClientEditProduct({ id }) {
     price: "",
     hasSizes: false,
     sizes: [],
-    images: [], // This will hold both existing and new image URLs
+    images: [],
+    newImageFiles: [],
   });
 
   const [categories, setCategories] = useState([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchProduct = async () => {
+    const fetchData = async () => {
+      setIsLoading(true);
       try {
-        const productRef = doc(db, "products", id);
-        const productSnap = await getDoc(productRef);
+        const [productSnap, categorySnap] = await Promise.all([
+          getDoc(doc(db, "products", productId)),
+          getDocs(collection(db, "categories")),
+        ]);
+
         if (productSnap.exists()) {
-          setProduct(productSnap.data());
+          const productData = productSnap.data();
+          setProduct({
+            ...productData,
+            images: Array.isArray(productData.images) ? productData.images : [],
+            newImageFiles: [],
+          });
         } else {
-          console.error("No such product!");
+          throw new Error("Product not found");
         }
+
+        setCategories(
+          categorySnap.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }))
+        );
       } catch (err) {
-        console.error("Error fetching product:", err);
+        console.error("Error fetching data:", err);
+        toast.error(err.message);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    const fetchCategories = async () => {
-      try {
-        const categoriesCollection = collection(db, "categories");
-        const categorySnapshot = await getDocs(categoriesCollection);
-        const categoryList = categorySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setCategories(categoryList);
-      } catch (err) {
-        console.error("Error fetching categories:", err);
-      }
-    };
-
-    fetchProduct();
-    fetchCategories();
-  }, [id]);
+    if (productId) fetchData();
+  }, [productId]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setProduct({ ...product, [name]: value });
+    setProduct((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleCategoryChange = (value) => {
     const selectedCategory = categories.find((cat) => cat.name === value);
     if (selectedCategory) {
-      setProduct({ ...product, categoryId: selectedCategory.id });
+      setProduct((prev) => ({ ...prev, categoryId: selectedCategory.id }));
     }
   };
 
   const handleSizeToggle = () => {
-    setProduct({ ...product, hasSizes: !product.hasSizes, sizes: [] });
+    setProduct((prev) => ({ ...prev, hasSizes: !prev.hasSizes, sizes: [] }));
   };
 
   const handleSizeChange = (size) => {
-    const updatedSizes = product.sizes.includes(size)
-      ? product.sizes.filter((s) => s !== size)
-      : [...product.sizes, size];
-    setProduct({ ...product, sizes: updatedSizes });
+    setProduct((prev) => ({
+      ...prev,
+      sizes: prev.sizes.includes(size)
+        ? prev.sizes.filter((s) => s !== size)
+        : [...prev.sizes, size],
+    }));
+  };
+
+  const uploadToCloudinary = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "Unsigned");
+    formData.append("folder", "sheyonceProducts");
+
+    try {
+      const response = await axios.post(
+        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+        formData
+      );
+      return response.data.secure_url;
+    } catch (error) {
+      console.error("Cloudinary upload failed:", error);
+      throw new Error("Failed to upload image");
+    }
   };
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
 
-    // Check if the total number of images exceeds 3
+    // Validate total number of images
     if (product.images.length + files.length > 3) {
-      toast.error(
-        "You can only upload a maximum of 3 images. Please remove some images first."
-      );
+      toast.error("Maximum 3 images allowed");
+      return;
+    }
+
+    // Validate file types
+    const invalidFiles = files.filter(
+      (file) => !file.type.startsWith("image/")
+    );
+    if (invalidFiles.length > 0) {
+      toast.error("Please select only image files");
       return;
     }
 
     const newImageUrls = files.map((file) => URL.createObjectURL(file));
-    setProduct({ ...product, images: [...product.images, ...newImageUrls] });
+
+    setProduct((prev) => ({
+      ...prev,
+      images: [...prev.images, ...newImageUrls],
+      newImageFiles: [...prev.newImageFiles, ...files],
+    }));
   };
 
   const handleRemoveImage = (index) => {
-    const updatedImages = product.images.filter((_, i) => i !== index);
-    setProduct({ ...product, images: updatedImages });
+    setProduct((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+      newImageFiles: prev.newImageFiles.filter((_, i) => i !== index),
+    }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
+ const handleSubmit = async (e) => {
+   e.preventDefault();
+   setIsSubmitting(true);
+   setError("");
 
-    if (!product.name || !product.categoryId || !product.price) {
-      setError("Please fill in all required fields");
-      return;
-    }
+   try {
+     if (!product.name.trim()) throw new Error("Product name is required");
+     if (!product.categoryId) throw new Error("Please select a category");
+     if (!product.price || parseFloat(product.price) <= 0) {
+       throw new Error("Please enter a valid price");
+     }
+     if (product.hasSizes && product.sizes.length === 0) {
+       throw new Error("Please select at least one size");
+     }
+     if (product.images.length === 0) {
+       throw new Error("Please add at least one product image");
+     }
 
-    try {
-      const productRef = doc(db, "products", id); // Get a reference to the product document
-      await updateDoc(productRef, {
-        name: product.name,
-        description: product.description,
-        categoryId: product.categoryId,
-        price: parseFloat(product.price), // Ensure price is a number
-        hasSizes: product.hasSizes,
-        sizes: product.sizes,
-        images: product.images, // Use the updated images array
-      });
+     // Initialize finalImages with existing Cloudinary URLs
+     let finalImages = product.images.slice(
+       0,
+       product.images.length - product.newImageFiles.length
+     );
 
-      toast.success("Product updated successfully!");
-      router.push("/dashboard/products");
-    } catch (err) {
-      setError("Failed to update product. Please try again.");
-      console.error("Error updating product:", err);
-    }
-  };
+     // Upload new images if any
+     if (product.newImageFiles.length > 0) {
+       const uploadedUrls = await toast.promise(
+         Promise.all(product.newImageFiles.map(uploadToCloudinary)),
+         {
+           loading: "Uploading images...",
+           success: "Images uploaded successfully!",
+           error: "Failed to upload images",
+         }
+       );
+
+       // Combine existing URLs with newly uploaded URLs
+       finalImages = [...finalImages, ...uploadedUrls];
+     }
+
+    //  const obj = {
+    //    name: product.name.trim(),
+    //    description: product.description.trim(),
+    //    categoryId: product.categoryId,
+    //    price: parseFloat(product.price),
+    //    hasSizes: product.hasSizes,
+    //    sizes: product.sizes,
+    //    images: finalImages,
+    //    updatedAt: new Date().toISOString(),
+    //  };
+
+    //  console.log(obj, 'object')
+
+     // Update product in Firestore
+     await updateDoc(doc(db, "products", productId), {
+       name: product.name.trim(),
+       description: product.description.trim(),
+       categoryId: product.categoryId,
+       price: parseFloat(product.price),
+       hasSizes: product.hasSizes,
+       sizes: product.sizes,
+       images: finalImages,
+       updatedAt: new Date().toISOString(),
+     });
+
+     toast.success("Product updated successfully!");
+    //  router.push("/dashboard/products");
+   } catch (err) {
+     console.error("Update failed:", err);
+     toast.error(err.message);
+     setError(err.message);
+   } finally {
+     setIsSubmitting(false);
+   }
+ };
+
+  if (isLoading) {
+    return <p>Loading product...</p>;
+  }
 
   return (
     <div className="max-w-2xl mx-auto md:mt-8">
@@ -174,11 +267,13 @@ export default function ClientEditProduct({ id }) {
               <Input
                 id="price"
                 name="price"
-                className="text-sm h-12"
                 type="number"
+                step="0.01"
+                min="0"
                 value={product.price}
                 onChange={handleInputChange}
                 placeholder="Enter product price"
+                className="text-sm h-12"
                 required
               />
             </div>
@@ -186,11 +281,12 @@ export default function ClientEditProduct({ id }) {
             <div>
               <Label htmlFor="category">Category</Label>
               <Select
-                name="category"
-                value={product.category}
+                value={
+                  categories.find((cat) => cat.id === product.categoryId)?.name
+                }
                 onValueChange={handleCategoryChange}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-12">
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -214,8 +310,8 @@ export default function ClientEditProduct({ id }) {
 
             {product.hasSizes && (
               <div className="space-y-2">
-                <Label>Select Sizes</Label>
-                <div className="flex flex-wrap gap-2">
+                <Label>Available Sizes</Label>
+                <div className="flex flex-wrap gap-4">
                   {SIZES.map((size) => (
                     <div key={size} className="flex items-center space-x-2">
                       <Checkbox
@@ -232,7 +328,8 @@ export default function ClientEditProduct({ id }) {
 
             <div>
               <Label htmlFor="description">
-                Description <span className="text-xs italic"> (optional)</span>
+                Description{" "}
+                <span className="text-xs text-gray-500">(optional)</span>
               </Label>
               <Textarea
                 id="description"
@@ -240,35 +337,51 @@ export default function ClientEditProduct({ id }) {
                 value={product.description}
                 onChange={handleInputChange}
                 placeholder="Enter product description"
-                className="text-sm h-12"
+                className="min-h-[100px] text-sm"
               />
             </div>
 
             <div>
-              <Label htmlFor="images">New Images</Label>
+              <Label htmlFor="images">
+                Product Images{" "}
+                <span className="text-xs text-gray-500">(max 3)</span>
+              </Label>
               <Input
                 id="images"
                 type="file"
-                multiple
                 onChange={handleImageUpload}
                 accept="image/*"
+                multiple
+                className="h-12"
               />
             </div>
 
-            <ImagePreviewEdit files={product.images} onRemove={handleRemoveImage} />
+            {product.images.length > 0 && (
+              <ImagePreviewEdit
+                files={product.images}
+                onRemove={handleRemoveImage}
+              />
+            )}
 
-            {error && <p className="text-red-500 my-2 text-sm">{error}</p>}
-            <div className="flex justify-end space-x-2 mt-6">
+            {error && <p className="text-red-500 text-sm">{error}</p>}
+
+            <div className="flex justify-end space-x-2 pt-4">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                className="mr-8 text-sm"
+                className="mr-8"
                 onClick={() => router.push("/dashboard/products")}
               >
                 Cancel
               </Button>
-              <Button type="submit">Update Product</Button>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="min-w-[100px]"
+              >
+                {isSubmitting ? "Updating..." : "Update Product"}
+              </Button>
             </div>
           </form>
         </CardContent>

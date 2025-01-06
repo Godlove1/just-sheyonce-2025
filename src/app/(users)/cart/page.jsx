@@ -59,7 +59,7 @@ export default function CartPage() {
                   Size: {item.selectedSize}
                 </p>
                 <p className="text-sm font-medium mt-1">
-                  &#8355;{item.price.toFixed(0)}
+                 XAF {item.price.toLocaleString()}
                 </p>
 
                 <div className="flex items-center gap-2 mt-2">
@@ -97,7 +97,7 @@ export default function CartPage() {
         <div className="mt-8 space-y-4">
           <div className="flex justify-between text-lg font-medium">
             <span>Total</span>
-            <span>&#8355;{total.toFixed(0)}</span>
+            <span>XAF {total.toLocaleString()}</span>
           </div>
 
           <Button asChild className="w-full" size="lg">

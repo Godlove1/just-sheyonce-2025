@@ -11,7 +11,7 @@ export function CategoriesNav() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true); // Loading state
   const scrollRef = useRef(null);
-  const { selectedCategory, setSelectedCategory } = useStore();
+  const { selectedCategory, setSelectedCategory, setSelectedCategoryImage } = useStore();
 
   // Fetch categories from Firestore
   useEffect(() => {
@@ -66,7 +66,18 @@ export function CategoriesNav() {
             : categories?.map((category) => (
                 <button
                   key={category?.id}
-                  onClick={() => setSelectedCategory(category?.id)}
+                onClick={() => {
+                  setSelectedCategory(category?.id);
+                  if(category?.id !== "1") {
+                    setSelectedCategoryImage({
+                      image: category?.catImage[0],
+                      id: category?.id,
+                    });
+                  } else {
+                    setSelectedCategoryImage(null);
+                  }
+                
+                  }}
                   className={`flex-shrink-0 text-[.8rem] capitalize 
                   ${
                     selectedCategory === category?.id
@@ -74,7 +85,7 @@ export function CategoriesNav() {
                       : " text-gray-900 hover:underline"
                   }`}
                 >
-                  {category?.name}
+                  {category?.name} 
                 </button>
               ))}
         </div>

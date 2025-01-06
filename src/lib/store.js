@@ -4,7 +4,9 @@ import { persist } from "zustand/middleware";
 export const useStore = create(
   persist(
     (set, get) => ({
-      adminUser : null,
+      adminUser: null,
+      selectedCategoryImage: null,
+      setSelectedCategoryImage: (image) => set({ selectedCategoryImage: image }),
       setAdminUser: (user) => set({ adminUser: user }),
       cart: [],
       selectedCategory: "1",

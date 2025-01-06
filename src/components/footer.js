@@ -25,7 +25,7 @@ export default function Footer() {
 
          if (infoSnap.exists()) {
            setInfo(infoSnap.data()); // Set the info data
-           console.log(infoSnap.data(), "info");
+          //  console.log(infoSnap.data(), "info");
          } else {
            toast.error("info not found");
            return; // Exit if info is not found
@@ -43,7 +43,7 @@ export default function Footer() {
     
   return (
     <>
-      <footer className="w-full bg-black mt-12 text-white px-4 py-8">
+      <footer className="w-full bg-black  text-white px-4 py-8">
         <div className="container mx-auto">
           <div className="flex justify-center items-center flex-col">
             {/* Logo Section */}

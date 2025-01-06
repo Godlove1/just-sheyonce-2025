@@ -1,9 +1,9 @@
 import React from 'react'
-import ClientEditProduct from '../client';
+import EditProductForm from '../client';
 
 export default async function EditProductPage({ params }) {
   const { id } = await params;
   
 
-  return <ClientEditProduct id={id} />;
+  return <EditProductForm productId={id} />;
 }

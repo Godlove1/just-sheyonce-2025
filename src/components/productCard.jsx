@@ -9,7 +9,7 @@ export default function ProductCard({product}) {
   return (
     <>
       <Link key={product.id} href={`/product/${product.id}`} className="group">
-        <div className="aspect-[4/5] relative">
+        <div className="aspect-[2/3] relative">
           <Image
             src={product.images[0]}
             alt={product.name}
@@ -25,11 +25,11 @@ export default function ProductCard({product}) {
           )}
         </div>
         <div className="mt-2">
-          <h3 className="font-medium line-clamp-1 text-[0.76em] -mt-1 group-hover:text-gray-600 transition-colors">
+          <h3 className="font-medium line-clamp-2 text-[0.76em] -mt-1 group-hover:text-gray-600 transition-colors">
             {product.name}
           </h3>
           <p className="text-gray-600 text-xs font-bold">
-            &#8355;{product.price.toFixed(2)}
+            &#8355;{product?.price.toLocaleString()}
           </p>
         </div>
       </Link>

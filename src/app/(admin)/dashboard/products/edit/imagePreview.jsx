@@ -6,7 +6,7 @@ const ImagePreviewEdit = ({ files, onRemove }) => {
           <img
             src={file}
             alt={`Product ${index + 1}`}
-            className="w-20 h-20 object-cover rounded border"
+            className="w-24 h-24 object-contain rounded border"
           />
           <button
             type="button"
