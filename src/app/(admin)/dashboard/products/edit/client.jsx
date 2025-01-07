@@ -26,6 +26,7 @@ import {
 import { db } from "@/lib/firebase";
 import ImagePreviewEdit from "./imagePreview";
 import axios from "axios";
+import { slugify } from "@/lib/slugify";
 
 const SIZES = ["SM", "S", "M", "L", "XL", "XXL"];
 
@@ -203,22 +204,13 @@ export default function EditProductForm({ productId }) {
        finalImages = [...finalImages, ...uploadedUrls];
      }
 
-    //  const obj = {
-    //    name: product.name.trim(),
-    //    description: product.description.trim(),
-    //    categoryId: product.categoryId,
-    //    price: parseFloat(product.price),
-    //    hasSizes: product.hasSizes,
-    //    sizes: product.sizes,
-    //    images: finalImages,
-    //    updatedAt: new Date().toISOString(),
-    //  };
+   
 
-    //  console.log(obj, 'object')
-
+     const slug = `${slugify(product?.name)}-${productId?.toLowerCase()}`; 
      // Update product in Firestore
      await updateDoc(doc(db, "products", productId), {
        name: product.name.trim(),
+       slug,
        description: product.description.trim(),
        categoryId: product.categoryId,
        price: parseFloat(product.price),
@@ -229,7 +221,9 @@ export default function EditProductForm({ productId }) {
      });
 
      toast.success("Product updated successfully!");
-    //  router.push("/dashboard/products");
+
+     console.log(slug,productId, ";let watch")
+     //  router.push("/dashboard/products");
    } catch (err) {
      console.error("Update failed:", err);
      toast.error(err.message);

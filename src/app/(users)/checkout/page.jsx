@@ -8,10 +8,13 @@ import { useRouter } from "next/navigation";
 import { useStore } from "@/lib/store";
 import { collection, doc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { sendGAEvent } from "@next/third-parties/google";
+import toast from "react-hot-toast";
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, clearCart } = useStore();
+  const [isAction, setIsAction] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -23,38 +26,60 @@ export default function CheckoutPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    toast.info("generating order request");
+    setIsAction(true)
+    toast("Generating order request...");
 
-    const orderRef = doc(collection(db, "orders"));
-    await setDoc(orderRef, {
-      ...cart,
-      total,
-      orderId: orderRef.id,
-    });
+    try {
+      // Save order to Firestore
+      const orderRef = doc(collection(db, "orders"));
+      await setDoc(orderRef, {
+        ...cart,
+        total,
+        orderId: orderRef.id,
+        customerName: formData.name,
+        customerPhone: formData.phone,
+        customerAddress: formData.address,
+        createdAt: new Date().toISOString(),
+      });
 
-    // Create WhatsApp message
-    const message =
-      `New Order from ${formData.name}!\n\n` +
-      `Items:\n${cart
-        .map(
-          (item) =>
-            `- ${item.name} (${item.selectedSize}) x${item.quantity} - XAF${(
-              item.price * item.quantity
-            ).toLocaleString()}`
-        )
-        .join("\n")}\n\n` +
-      `Total: $&#8355;{total.toFixed(2)}\n\n` +
-      `Customer Details:\n` +
-      `Name: ${formData.name}\n` +
-      `Phone: ${formData.phone}\n` +
-      `Address: ${formData.address}`;
+      toast.success("Order saved successfully!");
 
-    // Encode message for WhatsApp URL
-    const encodedMessage = encodeURIComponent(message);
+      // Create WhatsApp message
+      const message =
+        `New Order from ${formData.name}!\n\n` +
+        `Items:\n${cart
+          .map(
+            (item) =>
+              `- ${item.name} (${item.selectedSize}) x${item.quantity} - XAF${(
+                item.price * item.quantity
+              ).toLocaleString()}`
+          )
+          .join("\n")}\n\n` +
+        `Total: XAF ${total.toLocaleString()}\n\n` +
+        `Customer Details:\n` +
+        `Name: ${formData.name}\n` +
+        `Phone: ${formData.phone}\n` +
+        `Address: ${formData.address}`;
 
-    // Clear cart and redirect to WhatsApp
-    clearCart();
-    window.location.href = `https://wa.me/1234567890?text=${encodedMessage}`;
+      // Encode message for WhatsApp URL
+      const encodedMessage = encodeURIComponent(message);
+
+      // Clear cart
+      clearCart();
+
+      setIsAction(false)
+      // Redirect to WhatsApp
+      // Create a link and trigger a click
+      const link = document.createElement("a");
+      link.href = `https://wa.me/1234567890?text=${encodedMessage}`;
+      link.target = "_blank"; // Open in a new tab
+      link.click();
+
+      // console.log(encodedMessage, "message");
+    } catch (error) {
+      console.error("Error saving order:", error);
+      toast.error("Failed to save order. Please try again.");
+    }
   };
 
   if (cart.length === 0) {
@@ -62,7 +87,6 @@ export default function CheckoutPage() {
     return null;
   }
 
-  console.log(cart, "cart");
   return (
     <>
       <div className="min-h-screen p-4">
@@ -74,9 +98,10 @@ export default function CheckoutPage() {
               <Label htmlFor="name">Name</Label>
               <Input
                 id="name"
+                className="h-12"
                 required
                 value={formData.name}
-                placeholder="enter your name"
+                placeholder="Enter your name"
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
                 }
@@ -87,7 +112,8 @@ export default function CheckoutPage() {
               <Label htmlFor="phone">Phone</Label>
               <Input
                 id="phone"
-                placeholder="enter your phone number"
+                className="h-12"
+                placeholder="Enter your phone number"
                 type="tel"
                 required
                 value={formData.phone}
@@ -99,15 +125,27 @@ export default function CheckoutPage() {
 
             <div>
               <Label htmlFor="address">Delivery Address</Label>
-              <Input
+              <textarea
                 id="address"
                 required
-                placeholder="enter your address"
+                placeholder="Enter your address"
                 value={formData.address}
                 onChange={(e) =>
                   setFormData({ ...formData, address: e.target.value })
                 }
+                className="w-full p-2 border rounded-md resize-y min-h-[100px]"
               />
+            </div>
+
+            <div className="w-full flex justify-center items-center">
+              <div>
+                <Input
+                  className="h-12"
+                  placeholder="COUPON CODE"
+                  type="text"
+                 disabled
+                />
+              </div>
             </div>
           </div>
 
@@ -117,8 +155,17 @@ export default function CheckoutPage() {
               <span>XAF {total.toLocaleString()}</span>
             </div>
 
-            <Button type="submit" className="w-full" size="lg" id="OrderButton">
-              Complete Order on WhatsApp
+            <Button
+              onClick={() =>
+                sendGAEvent("event", "buttonClicked", { value: "Order button" })
+              }
+              type="submit"
+              className="w-full"
+              size="lg"
+              id="OrderButton"
+              disabled={isAction}
+            >
+              {isAction ? "Generating order..." : "Complete Order on WhatsApp"}
             </Button>
           </div>
         </form>

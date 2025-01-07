@@ -112,7 +112,7 @@ export default function ProductDetailPage({ id }) {
         className="absolute top-24 right-4 p-2 z-40 bg-white rounded-full shadow-lg"
         onClick={() => {
           const shareText = `Check out this ${product?.name} from Sheyonce!`;
-          const shareUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/product/${id}`;
+          const shareUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/shop/${slug}`;
           if (navigator.share) {
             navigator.share({
               title: shareText,

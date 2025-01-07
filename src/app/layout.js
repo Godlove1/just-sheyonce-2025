@@ -1,16 +1,28 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { AuthContextProvider } from "@/lib/Authcontext";
 import { Toaster } from "react-hot-toast";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+// Define the local font with the `variable` property
+const graphik = localFont({
+  src: [
+    {
+      path: "./fonts/regular.otf",
+      weight: "400", // Regular
+      style: "normal", // Normal style
+    },
+    {
+      path: "./fonts/medium.otf",
+      weight: "500", // Medium
+      style: "normal", // Normal style
+    },
+    {
+      path: "./fonts/semibold.otf",
+      weight: "600", // Semibold
+      style: "normal", // Normal style
+    },
+  ],
+  variable: "--font-graphik", // Define a CSS variable for the font family
 });
 
 export const metadata = {
@@ -23,7 +35,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${graphik.variable} font-sans antialiased`} 
       >
         <Toaster />
         <AuthContextProvider>{children}</AuthContextProvider>

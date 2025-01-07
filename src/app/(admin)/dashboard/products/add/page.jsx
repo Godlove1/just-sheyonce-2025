@@ -20,6 +20,7 @@ import ImagePreview from "@/components/imagePreview";
 import { collection, doc, getDocs, query, setDoc } from "firebase/firestore";
 import axios from "axios"; // Ensure axios is imported for image uploads
 import { db } from "@/lib/firebase";
+import { slugify } from "@/lib/slugify";
 
 const SIZES = ["SM", "S", "M", "L", "XL", "XXL"];
 
@@ -146,11 +147,15 @@ export default function AddProductPage() {
         error: "Failed to upload images",
       });
 
+      // Generate a slug from the product name
+      const slug = `${slugify(newProduct.name)}-${Id?.toLocaleLowerCase()}`; // Append the ID to the slug
+
       const Id = doc(collection(db, "products")).id;
 
       const productData = {
         id: Id,
         name: newProduct.name,
+        slug,
         price: parseInt(newProduct.price, 10),
         description: newProduct.description || "",
         categoryId: newProduct.categoryId,

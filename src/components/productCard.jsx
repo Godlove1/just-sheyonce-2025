@@ -8,7 +8,7 @@ import React from 'react'
 export default function ProductCard({product}) {
   return (
     <>
-      <Link key={product.id} href={`/product/${product.id}`} className="group">
+      <Link key={product.id} href={`/shop/${product?.slug}`} className="group">
         <div className="aspect-[2/3] relative">
           <Image
             src={product.images[0]}
@@ -25,7 +25,7 @@ export default function ProductCard({product}) {
           )}
         </div>
         <div className="mt-2">
-          <h3 className="font-medium line-clamp-2 text-[0.76em] -mt-1 group-hover:text-gray-600 transition-colors">
+          <h3 className="font-medium font-graphik line-clamp-2 text-[0.76em] -mt-1 group-hover:text-gray-600 transition-colors">
             {product.name}
           </h3>
           <p className="text-gray-600 text-xs font-bold">

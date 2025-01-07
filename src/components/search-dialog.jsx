@@ -54,7 +54,7 @@ export function SearchDialog({ isOpen, onClose }) {
             searchResults.map((product) => (
               <Link
                 key={product.id}
-                href={`/product/${product.id}`}
+                href={`/shop/${product.slug}`}
                 className="flex items-center space-x-4"
                 onClick={onClose}
               >
