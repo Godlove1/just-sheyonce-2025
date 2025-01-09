@@ -19,6 +19,28 @@ const nextConfig = {
       },
     ],
   },
+  headers: async () => {
+    return [
+      {
+        source: "/PWALessSDKWorker.js",
+        headers: [
+          {
+            key: "Service-Worker-Allowed",
+            value: "/",
+          },
+        ],
+      },
+      {
+        source: "/PWALessSDKUpdaterWorker.js",
+        headers: [
+          {
+            key: "Service-Worker-Allowed",
+            value: "/",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

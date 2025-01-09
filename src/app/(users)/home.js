@@ -19,6 +19,7 @@ import {
 import toast from "react-hot-toast";
 import ProductCard from "@/components/productCard";
 import Image from "next/image";
+import InstagramFeed from "@/components/InstagramFeed";
 
 const ITEMS_PER_PAGE = 1;
 
@@ -202,6 +203,10 @@ export default function Home() {
           </div>
         )}
       </div>
+
+
+      {/* instagram feed */}
+      <InstagramFeed />
     </div>
   );
 }

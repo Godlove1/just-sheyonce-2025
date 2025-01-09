@@ -1,66 +1,97 @@
-"use client"
-import React, { useEffect, useState } from 'react'
-import {  Twitter, Linkedin, Instagram, Facebook, Twitch, TwitterIcon, Ghost, InstagramIcon, PhoneCall } from 'lucide-react';
-import Image from 'next/image';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import toast from 'react-hot-toast';
+"use client";
+import React, { useEffect, useState } from "react";
+import {
+  Twitter,
+  Linkedin,
+  Instagram,
+  Facebook,
+  Twitch,
+  TwitterIcon,
+  Ghost,
+  InstagramIcon,
+  PhoneCall,
+} from "lucide-react";
+import Image from "next/image";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import toast from "react-hot-toast";
+import { Button } from "./ui/button";
 
 export default function Footer() {
-
   const currentYear = new Date().getFullYear();
 
   const [isLoading, setIsLoading] = useState(false);
-  const [info, setInfo] = useState([])
-  
-   useEffect(() => {
-     const fetchInfo = async () => {
-       setIsLoading(true);
-       try {
-         const infoRef = doc(db, "adminUser", "vQz0BzZXRIOjQYJILn9D"); // Create a reference to the info document
-         const infoPromise = getDoc(infoRef); // Fetch the info document
+  const [info, setInfo] = useState([]);
 
-         // Wait for both promises to resolve
-         const [infoSnap] = await Promise.all([infoPromise]);
+  useEffect(() => {
+    const fetchInfo = async () => {
+      setIsLoading(true);
+      try {
+        const infoRef = doc(db, "adminUser", "vQz0BzZXRIOjQYJILn9D");
+        const infoPromise = getDoc(infoRef); // Fetch the info document
 
-         if (infoSnap.exists()) {
-           setInfo(infoSnap.data()); // Set the info data
+        // Wait for both promises to resolve
+        const [infoSnap] = await Promise.all([infoPromise]);
+
+        if (infoSnap.exists()) {
+          setInfo(infoSnap.data()); // Set the info data
           //  console.log(infoSnap.data(), "info");
-         } else {
-           toast.error("info not found");
-           return; // Exit if info is not found
-         }
-       } catch (err) {
-         console.error(err);
-         toast.error("Failed to load info");
-       } finally {
-         setIsLoading(false);
-       }
-     };
+        } else {
+          toast.error("info not found");
+          return; // Exit if info is not found
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to load info");
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-     fetchInfo();
-   }, []);
-    
+    fetchInfo();
+  }, []);
+
   return (
     <>
+      <div
+        id="install-button"
+        onClick={() => pwaless.showWidget("install-prompt")}
+        className="w-full bg-gray-100 p-4"
+      >
+        <div className="app_installer w-full flex justify-between items-center">
+          {/* <!-- left --> */}
+          <div className="left flex justify-center items-center ">
+            <div className="logo_app mr-3">
+              <Image width={45} height={45} src="/bg-black.jpg" alt="logo" />
+            </div>
+            <div className="text_install">
+              <div className="app_name boldText text-sm">Sheyonce &trade; </div>
+              <p className="text-xs">Install our app</p>
+            </div>
+          </div>
+          {/* <!-- get_app button --> */}
+          <div className="get_app">
+            <Button size="sm" className="bg-black rounded-sm p-2 text-white">
+              {" "}
+              Install App
+            </Button>
+          </div>
+        </div>
+      </div>
+      {/* <!-- Custom install button --> */}
       <footer className="w-full bg-black  text-white px-4 py-8">
         <div className="container mx-auto">
           <div className="flex justify-center items-center flex-col">
             {/* Logo Section */}
             <div className="flex flex-col items-center md:items-start">
-              <Image
-                src="/bg-black.jpg"
-                width={100}
-                height={100}
-                alt="logo"
-              />
+              <Image src="/bg-black.jpg" width={100} height={100} alt="logo" />
             </div>
 
             {/* Address Section */}
             <div className="flex flex-col items-center justify-center  ">
               <h3 className="text-sm font-semibold mb-4">Contact Us</h3>
               <address className="text-gray-300 not-italic text-center text-xs ">
-               {info?.address}
+                {info?.address}
                 <br />
                 {/* City, State 12345
                 <br /> */}

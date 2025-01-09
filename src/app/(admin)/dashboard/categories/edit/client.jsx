@@ -85,7 +85,7 @@ export default function EditCategoryForm({ categoryId }) {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", "Unsigned");
-    formData.append("folder", "sheyonceCategories");
+    formData.append("folder", "sheyonce");
 
     try {
       const response = await axios.post(

@@ -59,7 +59,7 @@ export default function DashboardLayout({ children }) {
         <Sidebar className="border-r border-gray-200">
           <SidebarHeader className="p-4 w-full flex justify-center items-center">
             <Image
-              src={"/logo.png"}
+              src={"/logo.webp"}
               width={100}
               height={100}
               alt="Admin"

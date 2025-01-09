@@ -33,9 +33,9 @@ export default function Header() {
             </SheetContent>
           </Sheet>
 
-          <Link href="/">
+          <Link href="/" className="ml-8" title="sheyonce">
             <Image
-              src="/logo.png"
+              src="/logo.webp"
               alt="Sheyonce logo"
               width={80}
               height={80}

@@ -116,7 +116,7 @@ export default function EditProductForm({ productId }) {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", "Unsigned");
-    formData.append("folder", "sheyonceProducts");
+    formData.append("folder", "sheyonce");
 
     try {
       const response = await axios.post(

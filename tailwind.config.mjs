@@ -89,7 +89,7 @@ export default {
         "accordion-up": "accordion-up 0.2s ease-out",
       },
       fontFamily: {
-        graphik: ["var(--font-graphik)", ...fontFamily.sans], // Use the CSS variable
+        sans: ["var(--font-poppins)"],
       },
     },
   },

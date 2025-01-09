@@ -11,7 +11,7 @@ export default function ProductCard({product}) {
       <Link key={product.id} href={`/shop/${product?.slug}`} className="group">
         <div className="aspect-[2/3] relative">
           <Image
-            src={product.images[0]}
+            src={product.images[0] || '/logo.webp'}
             alt={product.name}
             fill
             priority
@@ -29,7 +29,7 @@ export default function ProductCard({product}) {
             {product.name}
           </h3>
           <p className="text-gray-600 text-xs font-bold">
-            &#8355;{product?.price.toLocaleString()}
+            CFA {product?.price.toLocaleString()}
           </p>
         </div>
       </Link>

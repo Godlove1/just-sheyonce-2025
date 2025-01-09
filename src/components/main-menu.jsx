@@ -29,13 +29,13 @@ export function MainMenu() {
           <h3 className="font-medium mb-4">Connect with us</h3>
           <div className="space-y-4">
             <a
-              href="https://instagram.com/sheyonce"
+              href="https://instagram.com/ssheyonce"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 hover:text-gray-600"
             >
               <Instagram className="w-5 h-5" />
-              @sheyonce
+              @ssheyonce
             </a>
             <a
               href="https://snapchat.com/add/sheyonce"
@@ -44,10 +44,10 @@ export function MainMenu() {
               className="flex items-center gap-2 hover:text-gray-600"
             >
               <Ghost className="w-5 h-5" />
-              @sheyonce
+              @sheyonce.store
             </a>
             <a
-              href="https://wa.me/1234567890"
+              href="https://wa.me/971525339438"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 hover:text-gray-600"

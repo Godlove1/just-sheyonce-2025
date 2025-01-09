@@ -1,42 +1,48 @@
-import localFont from "next/font/local";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 import { AuthContextProvider } from "@/lib/Authcontext";
 import { Toaster } from "react-hot-toast";
+import Script from "next/script";
 
-// Define the local font with the `variable` property
-const graphik = localFont({
-  src: [
-    {
-      path: "./fonts/regular.otf",
-      weight: "400", // Regular
-      style: "normal", // Normal style
-    },
-    {
-      path: "./fonts/medium.otf",
-      weight: "500", // Medium
-      style: "normal", // Normal style
-    },
-    {
-      path: "./fonts/semibold.otf",
-      weight: "600", // Semibold
-      style: "normal", // Normal style
-    },
-  ],
-  variable: "--font-graphik", // Define a CSS variable for the font family
+// Define Poppins font with selected weights
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-poppins",
 });
 
 export const metadata = {
-  title: "Sheyonce - Trendy Fashion for Everyone",
+  title:
+    "Sheyonce | Fashion Online For Women | Affordable Women&#39;s Clothing & Accessories",
   description:
-    "Discover the latest fashion trends at Sheyonce. Shop our collection of stylish clothing and accessories for men and women.",
+    "Sheyonce  is the top online fashion store for women. Shop sexy club dresses, jeans, shoes, bodysuits, skirts and more. Cheap &amp;amp; affordable fashion online.",
+  keyword:
+    "Sheyonce Fashion Boutique,,top online fashion store, for women, Shop, sexy club dresses, jeans, shoes, bodysuits, skirts, affordable fashion online, , sheyonce, beyonce, sheyonceKiss, sheyonce fashion , sheyonce fashion center, sheyonce kiss",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body
-        className={`${graphik.variable} font-sans antialiased`} 
-      >
+      <head>
+        <Script
+          id="mobsted-script"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(m,o,b,s,t,e,d){
+                m[t]=m[t]||{},e=o.createElement(b),d=o.getElementsByTagName(b)[0],
+                e.async=1,e.src=s,d.parentNode.insertBefore(e,d)
+              })(window,document,"script","https://cdn.mobsted.com/pwaless.js","pwaless");
+              pwaless.config = {
+                accountId: "f5162958",
+                server: "mobsted.com",
+                projectId: 15
+              }
+            `,
+          }}
+        />
+      </head>
+      <body className={`${poppins.variable} font-sans antialiased`}>
         <Toaster />
         <AuthContextProvider>{children}</AuthContextProvider>
       </body>
