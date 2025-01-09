@@ -9,6 +9,7 @@ import { useStore } from "@/lib/store";
 import { useState } from "react";
 import { Menu, Search, ShoppingBag } from "lucide-react";
 import { MiniCart } from "./mini-cart";
+import InstallButton from "./installButton";
 
 export default function Header() {
 
@@ -20,6 +21,7 @@ export default function Header() {
     
   return (
     <>
+      {/* <InstallButton /> */}
       <header className="sticky top-0 z-50 bg-white ">
         <div className="flex items-center justify-between p-4">
           <Sheet>
