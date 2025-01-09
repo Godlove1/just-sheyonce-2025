@@ -19,13 +19,13 @@ export function ImageCarousel({ images }) {
   };
 
   return (
-    <div className="relative">
-      <div className="aspect-[8/9] relative overflow-hidden">
+    <div className="relative px-2">
+      <div className="aspect-[9/10] relative px-8">  
         <Image
           src={images[currentIndex]}
           alt={`Product image ${currentIndex + 1}`}
           fill
-          className="object-cover transition-opacity duration-500"
+          className="object-fill transition-opacity duration-500 rounded-md shadow-sm"
         />
       </div>
       {images.length > 1 && (
