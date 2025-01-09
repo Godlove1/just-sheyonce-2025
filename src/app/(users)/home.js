@@ -196,14 +196,13 @@ export default function Home() {
           <div className="text-center mt-16  space-y-4">
             <p className="text-gray-500 text-xs italic">that's all for now</p>
             <Button variant="outline" asChild>
-              <Link href="https://wa.me/1234567890" className="text-xs">
+              <Link href="https://wa.me/971525339438" className="text-xs">
                 Can't find what you're looking for? Contact us
               </Link>
             </Button>
           </div>
         )}
       </div>
-
 
       {/* instagram feed */}
       <InstagramFeed />
