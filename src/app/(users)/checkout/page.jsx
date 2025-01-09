@@ -71,7 +71,7 @@ export default function CheckoutPage() {
       // Redirect to WhatsApp
       // Create a link and trigger a click
       const link = document.createElement("a");
-      link.href = `https://wa.me/1234567890?text=${encodedMessage}`;
+      link.href = `https://wa.me/971525339438?text=${encodedMessage}`;
       link.target = "_blank"; // Open in a new tab
       link.click();
 
