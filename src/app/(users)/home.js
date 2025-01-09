@@ -21,7 +21,7 @@ import ProductCard from "@/components/productCard";
 import Image from "next/image";
 import InstagramFeed from "@/components/InstagramFeed";
 
-const ITEMS_PER_PAGE = 1;
+const ITEMS_PER_PAGE = 20;
 
 export default function Home() {
   const { selectedCategory, selectedCategoryImage } = useStore();
