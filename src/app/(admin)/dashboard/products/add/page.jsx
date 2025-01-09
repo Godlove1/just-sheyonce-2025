@@ -147,10 +147,9 @@ export default function AddProductPage() {
         error: "Failed to upload images",
       });
 
+      const Id = doc(collection(db, "products")).id;
       // Generate a slug from the product name
       const slug = `${slugify(newProduct.name)}-${Id?.toLocaleLowerCase()}`; // Append the ID to the slug
-
-      const Id = doc(collection(db, "products")).id;
 
       const productData = {
         id: Id,
