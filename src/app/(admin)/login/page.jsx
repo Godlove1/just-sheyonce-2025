@@ -66,7 +66,7 @@ export default function LoginPage() {
         <CardHeader>
           <CardTitle className="w-full flex justify-center items-center">
             <Image
-              src={"/logo.png"}
+              src={"/logo.webp"}
               width={100}
               height={100}
               unoptimized
